@@ -1,5 +1,4 @@
 import asyncio
-
 from demo.code.config import PROXIES, get_image_path
 from utils import Network, SauceNAO
 from utils.model import SauceNAOResponse
@@ -7,11 +6,13 @@ from utils.model import SauceNAOResponse
 file = get_image_path("test.jpg")
 api_key = "a4ab3f81009b003528f7e31aed187fa32a063f58"
 
+
 async def demo_async() -> None:
     async with Network(proxies=PROXIES) as client:
         saucenao = SauceNAO(api_key=api_key, hide=3, client=client)
         resp = await saucenao.search(file=file)
         show_result(resp)
+
 
 def show_result(resp: SauceNAOResponse) -> None:
     result = (

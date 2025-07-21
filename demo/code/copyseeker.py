@@ -1,5 +1,4 @@
 import asyncio
-
 from demo.code.config import PROXIES, get_image_path
 from utils import Copyseeker, Network
 from utils.model import CopyseekerResponse
@@ -12,6 +11,7 @@ async def demo_async() -> None:
         copyseeker = Copyseeker(client=client)
         resp = await copyseeker.search(file=file)
         show_result(resp)
+
 
 def show_result(resp: CopyseekerResponse) -> None:
     lines = [

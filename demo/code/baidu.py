@@ -1,16 +1,17 @@
 import asyncio
-
 from demo.code.config import get_image_path
 from utils import BaiDu, Network
 from utils.model import BaiDuResponse
 
 file = get_image_path("test.jpg")
 
+
 async def demo_async() -> None:
     async with Network() as client:
         baidu = BaiDu(client=client)
         resp = await baidu.search(file=file)
         show_result(resp)
+
 
 def show_result(resp: BaiDuResponse) -> None:
     lines = [
