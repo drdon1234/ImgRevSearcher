@@ -38,6 +38,7 @@
   6. 全选复制并替换根目录下 "config.py" -> "DEFAULT_COOKIES" -> "google_lens" 对应的 cookie
 
 无痕账户的 cookie 格式应当是 "AEC= ; NID= "  
-每个无痕账户的 cookie 有效期限为 6 个月
+每个无痕账户的 cookie 有效期限为 6 个月  
+必须使用无痕账户 cookie，登录账户 cookie 有效期极短
 
 ---
