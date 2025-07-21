@@ -14,12 +14,17 @@ async def demo_async() -> None:
 
 
 def show_result(resp: AnimeTraceResponse) -> None:
-    lines = [f"是否为 AI 生成: {'是' if resp.ai else '否'}"]
+    lines = [
+        "-" * 50,
+        f"是否为 AI 生成: {'是' if resp.ai else '否'}",
+        "-" * 50,
+    ]
     if resp.raw:
         if characters := resp.raw[0].characters:
             for character in characters:
                 lines.append(f"作品名: {character.work}")
                 lines.append(f"角色名: {character.name}")
+                lines.append("-" * 50)
     print("\n".join(lines))
 
 
