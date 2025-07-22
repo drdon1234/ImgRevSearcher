@@ -30,9 +30,19 @@ class BaiDuResponse(BaseSearchResponse[BaiDuItem]):
             self.raw.extend([BaiDuItem(i) for i in data_list])
             
     def show_result(self) -> str:
-        lines = ["-" * 50, "相关结果:", f"  链接: {self.raw[0].url if self.raw else '无'}"]
+        lines = ["-" * 50, "相关结果:"]
+        if self.raw:
+            for idx, item in enumerate(self.raw, 1):
+                lines.append(f"结果 #{idx}")
+                lines.append(f"链接: {item.url}")
+        else:
+            lines.append("  无")
+            
         if self.exact_matches:
-            lines.extend(["-" * 50, "最佳结果:", f"  标题: {self.exact_matches[0].title}",
-                         f"  链接: {self.exact_matches[0].url}"])
-        lines.append("-" * 50)
+            lines.extend(["-" * 50, "最佳结果:"])
+            for idx, item in enumerate(self.exact_matches, 1):
+                lines.append(f"结果 #{idx}")
+                lines.append(f"  标题: {item.title}")
+                lines.append(f"  链接: {item.url}")
+                lines.append("-" * 50)
         return "\n".join(lines)

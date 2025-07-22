@@ -64,14 +64,15 @@ class EHentaiResponse(BaseSearchResponse[EHentaiItem]):
             
     def show_result(self, translations_file: str = "resource/ehviewer_translations.json") -> str:
         try:
-            with open(translations_file, 'r', encoding='utf-8') as f:
+            base_dir = Path(__file__).parent.parent.parent
+            abs_translations_file = base_dir / translations_file
+            with open(abs_translations_file, 'r', encoding='utf-8') as f:
                 translations = json.load(f)
-        except:
+        except Exception as e:
             translations = {}
-            
+            print(f"加载翻译文件失败: {e}")
         if not self.raw:
             return "未找到匹配结果"
-            
         categorized_tags = {}
         for tag in self.raw[0].tags:
             if ':' in tag:
@@ -83,14 +84,12 @@ class EHentaiResponse(BaseSearchResponse[EHentaiItem]):
                 if category_cn not in categorized_tags:
                     categorized_tags[category_cn] = []
                 categorized_tags[category_cn].append(tag_name_cn)
-                
         tag_lines = []
         for category, tags in categorized_tags.items():
             tag_line = f"{category}: {'; '.join(tags)}"
             tag_lines.append(tag_line)
-            
         type_cn = translations.get('reclass', {}).get(self.raw[0].type.lower(), self.raw[0].type)
-        lines = ["-" * 50, f"链接: {self.raw[0].url}", f"上传时间: {self.raw[0].date}",
+        lines = ["-" * 50, f"结果 #1", f"链接: {self.raw[0].url}", f"上传时间: {self.raw[0].date}",
                 f"标题: {self.raw[0].title}", f"类型: {type_cn}", f"页数: {self.raw[0].pages}", "标签:"]
         lines.extend([f"  {tag_line}" for tag_line in tag_lines])
         lines.append("-" * 50)

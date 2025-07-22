@@ -170,7 +170,8 @@ class GoogleLensResponse(BaseSearchResponse[GoogleLensItem]):
     def show_result(self) -> str:
         if self.raw:
             lines = ["搜索结果:", "-" * 50]
-            for item in self.raw:
+            for idx, item in enumerate(self.raw, 1):
+                lines.append(f"结果 #{idx}")
                 lines.append(f"标题: {item.title}")
                 lines.append(f"链接: {item.url}")
                 lines.append("-" * 50)
@@ -234,7 +235,8 @@ class GoogleLensExactMatchesResponse(BaseSearchResponse[GoogleLensExactMatchesIt
     def show_result(self) -> str:
         if self.raw:
             lines = ["精确匹配的结果:", "-" * 50]
-            for item in self.raw:
+            for idx, item in enumerate(self.raw, 1):
+                lines.append(f"结果 #{idx}")
                 lines.append(f"标题: {item.title}")
                 lines.append(f"链接: {item.url}")
                 lines.append("-" * 50)

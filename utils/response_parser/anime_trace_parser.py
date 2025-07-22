@@ -38,9 +38,11 @@ class AnimeTraceResponse(BaseSearchResponse[AnimeTraceItem]):
     def show_result(self) -> str:
         lines = ["-" * 50, f"是否为 AI 生成: {'是' if self.ai else '否'}", "-" * 50]
         if self.raw:
-            if characters := self.raw[0].characters:
-                for character in characters:
-                    lines.append(f"作品名: {character.work}")
-                    lines.append(f"角色名: {character.name}")
-                    lines.append("-" * 50)
+            for i, item in enumerate(self.raw, 1):
+                if characters := item.characters:
+                    for j, character in enumerate(characters, 1):
+                        lines.append(f"结果 #{j}")
+                        lines.append(f"作品名: {character.work}")
+                        lines.append(f"角色名: {character.name}")
+                        lines.append("-" * 50)
         return "\n".join(lines)

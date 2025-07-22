@@ -31,8 +31,8 @@
 
 1. 打开浏览器无痕窗口  
 2. 按 `F12` 打开开发者工具，切换到“网络(Network)”标签，过滤“Fetch/XHR”  
-3. 访问 [https://www.google.com/](https://www.google.com/)  
-4. 找到访问google主域名的请求，查看请求头中的 `Cookie` 字段  
+3. 访问 [https://image.google.com/](https://image.google.com/)  并上传任意图片进行搜索
+4. 找到以 `search?vsrid=` 开头的请求，查看请求头中的 `Cookie` 字段  
 5. 复制完整的 Cookie 内容，替换到 `config.py` 中 `DEFAULT_COOKIES` 的 `google_lens` 项
 
 **注意：**  

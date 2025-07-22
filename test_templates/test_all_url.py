@@ -7,8 +7,6 @@ test_url = "https://wallpaperaccess.com/full/7741398.jpg"
 
 async def test_all_engines():
     model = BaseSearchModel()
-
-    # 获取所有支持的引擎
     engines = model.get_supported_engines()
     print(f"支持的引擎数量: {len(engines)}")
     print(f"引擎列表: {', '.join(engines)}\n")

@@ -5,7 +5,7 @@ from config import PROXIES, ENGINE_MAP, DEFAULT_PARAMS, DEFAULT_COOKIES
 
 
 class BaseSearchModel:
-    def __init__(self, proxies: Optional[str] = None, cookies: Optional[str] = None,
+    def __init__(self, proxies: Optional[str] = PROXIES, cookies: Optional[str] = None,
                  timeout: int = 60, **kwargs: Any):
         self.proxies = proxies
         self.cookies = cookies

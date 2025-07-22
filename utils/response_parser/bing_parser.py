@@ -135,7 +135,8 @@ class BingResponse(BaseSearchResponse[BingItem]):
         lines = ["-" * 50]
         combined = (self.pages_including or []) + (self.visual_search or [])
         if combined:
-            for item in combined:
+            for idx, item in enumerate(combined, 1):
+                lines.append(f"结果 #{idx}")
                 lines.append(f"标题：{item.name}")
                 lines.append(f"页面链接：{item.url}")
                 lines.append(f"图片链接：{item.image_url}")

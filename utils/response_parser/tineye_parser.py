@@ -47,8 +47,9 @@ class TineyeResponse(BaseSearchResponse[TineyeItem]):
         if not self.raw:
             return "未找到匹配结果"
         lines = []
-        for i, item in enumerate(self.raw):
+        for i, item in enumerate(self.raw, 1):
             lines.append("-" * 50)
+            lines.append(f"结果 #{i}")
             lines.append(f"原图链接: {item.image_url}")
             lines.append(f"来源网页: {item.url}")
         lines.append("-" * 50)

@@ -31,7 +31,7 @@ DEFAULT_COOKIES = {
     "bing": None,
     "copyseeker": None,
     "ehentai": None, # "ipb_member_id=; ipb_pass_hash=; igneous="
-    "google_lens": "AEC=AVh_V2js0n1JT6JiPSstZJIHs0OvhRX9QTmHhjLrfrlREatNPLw9tM6WHU8; NID=525=ITCtMZSsSt437frcz5GWljMHdYDFvlxA5UotRrp1MHUw7cPj-ICk56tXZAs5hcvDieDgP4NN5RHXO68nUmXkJCuEKWYLU8sgL8heXQ7h33ZM6eNorLdz2cu-LgJbZrRfyfB4QQ9QGzW-TRTtsohitXydkg909mB2dbBwRZPk_9QvzRlEasrR6LXKoQuG_6rTb1GVruJFFoyZBmK-_CoIJiBdhRc1728TTcZ1yXcSwLHgY7bxj9fCUZRzHgs3FOs9W2Sd4s46epFDAdxBFuLU_V7kUQ0ny51gyfipDyWfyENtCrsocil5xGk8HVcbAA",
+    "google_lens": "AEC=AVh_V2j1uy574ZdQHejl0WJ64XptEwJrMKAFHVh9Z6jWX2NC8USYut_F-Q; NID=525=CAWgxic9AizZ0Ss6iBoG8HF00e5E6qRk1e_t5cUcEGiDEFQgavZH2pIFg_TayKhhtzVYqAS_OAYQYztukxUTEkXYVY1IEUm8j5mDMP1deKuJ21D1Sx45a8vyRbfNx81SJ7AtuwPFGiELykCR1j89hlJzAIitP2A9VwXz0Gh3XKNY9E3eJTmaLUbtdfaQaaD2o-HbjqznBA07YoPdwEGL4uQpqAxFHA; DV=02HpwPZoP-Me0J-HU_sc0eeCc8Yvgxk",
     "saucenao": None,
     "tineye": None,
 }

@@ -31,7 +31,4 @@ class BaseSearchResponse(ABC, Generic[T]):
         
     @abstractmethod
     def show_result(self) -> str:
-        """
-        格式化并返回搜索结果的字符串表示
-        """
         pass
