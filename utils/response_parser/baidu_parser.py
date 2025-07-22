@@ -35,14 +35,15 @@ class BaiDuResponse(BaseSearchResponse[BaiDuItem]):
             for idx, item in enumerate(self.raw, 1):
                 lines.append(f"结果 #{idx}")
                 lines.append(f"链接: {item.url}")
+                lines.append("-" * 50)
         else:
-            lines.append("  无")
+            lines.append("无相关结果")
             
         if self.exact_matches:
-            lines.extend(["-" * 50, "最佳结果:"])
+            lines.extend(["最佳结果:"])
             for idx, item in enumerate(self.exact_matches, 1):
                 lines.append(f"结果 #{idx}")
-                lines.append(f"  标题: {item.title}")
-                lines.append(f"  链接: {item.url}")
+                lines.append(f"标题: {item.title}")
+                lines.append(f"链接: {item.url}")
                 lines.append("-" * 50)
         return "\n".join(lines)
