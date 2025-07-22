@@ -27,7 +27,7 @@
 ---
 
 ## 注意事项
-### google_lens引擎强制要求 cookie
+### google_lens 引擎强制要求 cookie
 
 谷歌相关网站 cookie 捕获方法：
   1. 打开浏览器无痕模式
@@ -37,7 +37,7 @@
   5. 选中任意一条访问 google 主域名的网络请求，查看 "请求标头" 的 "Cookie" 参数
   6. 全选复制并替换根目录下 "config.py" -> "DEFAULT_COOKIES" -> "google_lens" 对应的 cookie
 
-无痕账户的 cookie 格式应当是 "AEC= ; NID= "  
+无痕账户的 cookie 格式应当是 "AEC= ;NID= "  
 每个无痕账户的 cookie 有效期限为 6 个月  
 必须使用无痕账户 cookie，登录账户 cookie 有效期极短
 
