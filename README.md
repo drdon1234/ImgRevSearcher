@@ -21,7 +21,7 @@
 ---
 
 ## 使用方法
-1. 配置根目录下 "config.py" 的 "PROXIES" 参数（否则墙内用户只能使用百度引擎）
+1. 配置根目录下 "config.py" 的 "PROXIES" 参数（否则墙内用户只能使用以下引擎：anime_trace, baidu, saucenao）
 2. 查看 "test_templates" 目录下代码模板，根据需要自行选择引擎
 
 ---
