@@ -4,21 +4,21 @@
 
 ## 支持的搜索引擎
 
-| 引擎       | 网址                                  |
-|-----------|-------------------------------------|
-| AnimeTrace | [https://www.animetrace.com/](https://www.animetrace.com/)      |
-| Baidu      | [https://graph.baidu.com/](https://graph.baidu.com/)            |
-| Bing       | [https://www.bing.com/images/search](https://www.bing.com/images/search) |
-| Copyseeker | [https://copyseeker.net/](https://copyseeker.net/)              |
-| E-Hentai   | [https://e-hentai.org/](https://e-hentai.org/)                  |
-| Google Lens| [https://lens.google.com/](https://lens.google.com/)            |
-| SauceNAO   | [https://saucenao.com/](https://saucenao.com/)                  |
-| Tineye     | [https://tineye.com/search/](https://tineye.com/search/)        |
+| 引擎 | 网址 | 二次元图片专用 | 中国大陆直连 |
+|------|------|---------|------------------|
+| AnimeTrace | [https://www.animetrace.com/](https://www.animetrace.com/) | ✅       | ✅ |
+| Baidu | [https://graph.baidu.com/](https://graph.baidu.com/) | ❌       | ✅ |
+| Bing | [https://www.bing.com/images/search](https://www.bing.com/images/search) | ❌       | ❌ |
+| Copyseeker | [https://copyseeker.net/](https://copyseeker.net/) | ❌       | ❌ |
+| E-Hentai | [https://e-hentai.org/](https://e-hentai.org/) | ✅       | ❌ |
+| Google Lens | [https://lens.google.com/](https://lens.google.com/) | ❌       | ❌ |
+| SauceNAO | [https://saucenao.com/](https://saucenao.com/) | ✅       | ✅ |
+| Tineye | [https://tineye.com/search/](https://tineye.com/search/) | ❌       | ❌ |
 
-## 快速开始使用
+## 使用指南
 
 1. **配置代理**  
-   编辑根目录的 `config.py` 中的 `PROXIES` 参数（墙内用户无代理时默认只能用百度引擎）
+   编辑根目录的 `config.json` 中的 `proxies` 参数
 
 2. **查看示例模板**  
    参考 `test_templates` 目录下的代码模板，可根据需求选择合适的引擎调用方式
@@ -30,16 +30,16 @@
 请按以下步骤获取无痕模式下有效的 Google Cookie：
 
 1. 打开浏览器无痕窗口  
-2. 按 `F12` 打开开发者工具，切换到“网络(Network)”标签，过滤“Fetch/XHR”  
+2. 按 `F12` 打开开发者工具，切换到"网络(Network)"标签，过滤"Fetch/XHR"  
 3. 访问 [https://image.google.com/](https://image.google.com/)  并上传任意图片进行搜索
 4. 找到以 `search?vsrid=` 开头的请求，查看请求头中的 `Cookie` 字段  
-5. 复制完整的 Cookie 内容，替换到 `config.py` 中 `DEFAULT_COOKIES` 的 `google_lens` 项
+5. 复制完整的 Cookie 内容，替换到 `config.json` 中 `default_cookies` 的 `google_lens` 项
 
 **注意：**  
-- 无痕模式cookie格式一般为 `AEC= ;NID= `，有效期限约6个月
+- 无痕模式cookie格式一般为 `AEC= ; NID= ; DV=`，有效期限约6个月
 - 登录状态cookie有效期极短，不建议使用
 
-# 图片搜索API参数说明文档
+# API 参数说明文档
 
 ## AnimeTrace
 
@@ -50,13 +50,14 @@
 
 ### 参数
 
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `url` | `Optional[str]` | ❌ | 要搜索的图片URL |
-| `file` | `Union[str, bytes, Path, None]` | ❌ | 本地图片文件，可以是路径字符串、字节数据或Path对象 |
-| `base64` | `Optional[str]` | ❌ | Base64编码的图片数据 |
-| `model` | `Optional[str]` | ❌ | 识别模型，默认为None |
-| `**kwargs` | `Any` | ❌ | 传递给请求的其他参数 |
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `url` | `Optional[str]` | 要搜索的图片URL |
+| `file` | `Union[str, bytes, Path, None]` | 本地图片文件，可以是路径字符串、字节数据或Path对象 |
+| `base64` | `Optional[str]` | Base64编码的图片数据 |
+| `model` | `Optional[str]` | 识别模型（默认：full_game_model_kira）|
+| `is_multi` | `Optional[int]` | 多角色搜索模式（默认：None）|
+| `ai_detect` | `Optional[int]` | AI检测模式（默认：None）|
 
 #### 可用模型
 - `anime_model_lovelive`
@@ -66,7 +67,7 @@
 
 ### 返回值
 
-```python
+```
 AnimeTraceResponse
 ```
 包含：
@@ -91,15 +92,14 @@ AnimeTraceResponse
 
 ### 参数
 
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `url` | `Optional[str]` | ❌ | 要搜索的图片URL |
-| `file` | `Union[str, bytes, Path, None]` | ❌ | 本地图片文件 |
-| `**kwargs` | `Any` | ❌ | 传递给父类的其他参数 |
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `url` | `Optional[str]` | 要搜索的图片URL |
+| `file` | `Union[str, bytes, Path, None]` | 本地图片文件 |
 
 ### 返回值
 
-```python
+```
 BaiDuResponse
 ```
 包含搜索结果和元数据。如果未找到匹配项或存在'noresult'卡片，则返回空结果。
@@ -121,15 +121,14 @@ BaiDuResponse
 
 ### 参数
 
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `url` | `Optional[str]` | ❌ | 要搜索的图片URL |
-| `file` | `Union[str, bytes, Path, None]` | ❌ | 本地图片文件 |
-| `**kwargs` | `Any` | ❌ | 传递给父类的其他参数 |
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `url` | `Optional[str]` | 要搜索的图片URL |
+| `file` | `Union[str, bytes, Path, None]` | 本地图片文件 |
 
 ### 返回值
 
-```python
+```
 BingResponse
 ```
 包含搜索结果和元数据的对象。
@@ -147,15 +146,14 @@ BingResponse
 
 ### 参数
 
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `url` | `Optional[str]` | ❌ | 要搜索的图片URL |
-| `file` | `Union[str, bytes, Path, None]` | ❌ | 本地图片文件 |
-| `**kwargs` | `Any` | ❌ | 传递给父类的其他参数 |
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `url` | `Optional[str]` | 要搜索的图片URL |
+| `file` | `Union[str, bytes, Path, None]` | 本地图片文件 |
 
 ### 返回值
 
-```python
+```
 CopyseekerResponse
 ```
 如果无法获得发现ID，则返回空响应。
@@ -168,15 +166,18 @@ CopyseekerResponse
 
 ### 参数
 
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `url` | `Optional[str]` | ❌ | 要搜索的图片URL |
-| `file` | `Union[str, bytes, Path, None]` | ❌ | 本地图片文件 |
-| `**kwargs` | `Any` | ❌ | 传递给父类的其他参数 |
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `url` | `Optional[str]` | 要搜索的图片URL |
+| `file` | `Union[str, bytes, Path, None]` | 本地图片文件 |
+| `is_ex` | `bool` | 是否使用ExHentai而不是E-Hentai（默认：False）|
+| `covers` | `bool` | 是否包含封面搜索结果（默认：False）|
+| `similar` | `bool` | 是否包含相似结果（默认：True）|
+| `exp` | `bool` | 是否启用实验性搜索模式（默认：False）|
 
 ### 返回值
 
-```python
+```
 EHentaiResponse
 ```
 包含：
@@ -196,17 +197,22 @@ EHentaiResponse
 
 ## GoogleLens
 
+**支持的搜索方式：**
+1. 🔗 通过图片URL搜索
+2. 📁 通过上传本地图片文件搜索
+
 ### 参数
 
-| 参数 | 类型 | 默认值 | 说明 |
-|------|------|---------|------|
-| `base_url` | `str` | `"https://lens.google.com"` | Google Lens搜索的基础URL |
-| `search_url` | `str` | `"https://www.google.com"` | Google搜索结果的基础URL |
-| `search_type` | `Literal` | `"all"` | 搜索类型 |
-| `q` | `Optional[str]` | `None` | 搜索查询参数（不适用于'exact_matches'） |
-| `hl` | `str` | `"en"` | 语言参数 |
-| `country` | `str` | `"US"` | 区域设置参数 |
-| `**request_kwargs` | `Any` | - | 网络请求的其他参数 |
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `url` | `Optional[str]` | 要搜索的图片URL |
+| `file` | `Union[str, bytes, Path, None]` | 本地图片文件 |
+| `base_url` | `str` | Google Lens搜索的基础URL |
+| `search_url` | `str` | Google搜索结果的基础URL |
+| `search_type` | `Literal` | 搜索类型（默认：exact_matches）|
+| `q` | `Optional[str]` | 搜索查询参数（仅在search_type不为'exact_matches'时适用）|
+| `hl` | `str` | 语言参数（默认：en）|
+| `country` | `str` | 区域设置参数（默认：HK）|
 
 #### 搜索类型选项
 - `all` - 全部搜索
@@ -227,15 +233,24 @@ EHentaiResponse
 
 ### 参数
 
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `url` | `Optional[str]` | ❌ | 要搜索的图片URL |
-| `file` | `Union[str, bytes, Path, None]` | ❌ | 本地图片文件 |
-| `**kwargs` | `Any` | ❌ | 传递给父类的其他参数 |
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `url` | `Optional[str]` | 要搜索的图片URL |
+| `file` | `Union[str, bytes, Path, None]` | 本地图片文件 |
+| `api_key` | `str` | SauceNAO API密钥（必需） |
+| `hide` | `int` | 隐藏级别（默认：3） |
+| `numres` | `int` | 返回结果数量（默认：5） |
+| `minsim` | `int` | 最低相似度（默认：30） |
+| `output_type` | `int` | 输出类型（默认：2，表示JSON输出） |
+| `testmode` | `int` | 测试模式（默认：0） |
+| `dbmask` | `Optional[int]` | 数据库掩码（包含） |
+| `dbmaski` | `Optional[int]` | 数据库掩码（排除） |
+| `db` | `int` | 搜索的数据库ID（默认：999，表示所有） |
+| `dbs` | `Optional[list[int]]` | 特定的数据库ID列表 |
 
 ### 返回值
 
-```python
+```
 SauceNAOResponse
 ```
 包含：
@@ -260,16 +275,15 @@ SauceNAOResponse
 
 ### 参数
 
-| 参数 | 类型 | 默认值 | 说明 |
-|------|------|---------|------|
-| `url` | `Optional[str]` | - | 要搜索的图片URL |
-| `file` | `Union[str, bytes, Path, None]` | - | 本地图片文件路径 |
-| `show_unavailable_domains` | `bool` | `False` | 是否包含来自不可用域名的结果 |
-| `domain` | `str` | `""` | 过滤特定域名的结果 |
-| `sort` | `str` | `"score"` | 排序标准 |
-| `order` | `str` | `"desc"` | 排序顺序 |
-| `tags` | `str` | `""` | 逗号分隔的过滤标签 |
-| `**kwargs` | `Any` | - | 其他关键字参数 |
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `url` | `Optional[str]` | 要搜索的图片URL |
+| `file` | `Union[str, bytes, Path, None]` | 本地图片文件路径 |
+| `show_unavailable_domains` | `bool` | 是否包含来自不可用域名的结果（默认：False） |
+| `domain` | `str` | 过滤特定域名的结果（默认：""） |
+| `sort` | `str` | 排序标准（默认：score） |
+| `order` | `str` | 排序顺序（默认：desc） |
+| `tags` | `str` | 逗号分隔的过滤标签（默认：""） |
 
 ### 排序选项
 
@@ -291,14 +305,13 @@ SauceNAOResponse
 
 ### 返回值
 
-```python
+```
 TineyeResponse
 ```
 包含搜索结果、域名信息和元数据。
 
 ## 📝 通用注意事项
 
-> **🚨 重要提醒**
-> - 所有服务都只能提供`url`或`file`参数中的一个
-> - 建议在使用前检查各服务的API限制和使用条款
-> - 某些服务可能需要身份验证或API密钥
+- 所有服务都只能提供`url`或`file`参数中的一个
+- 建议在使用前检查各服务的API限制和使用条款
+- 某些服务可能需要身份验证或API密钥

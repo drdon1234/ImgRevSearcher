@@ -7,7 +7,6 @@ test_url = "https://wallpaperaccess.com/full/7741398.jpg"
 
 async def test_single_engine():
     model = BaseSearchModel()
-
     print(f"{'=' * 30} 测试 BAIDU API {'=' * 30}")
     try:
         result = await model.search(api="baidu", url=test_url)

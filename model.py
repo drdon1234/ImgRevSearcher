@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any, Optional, Union
 from utils import Network
-from config import PROXIES, ENGINE_MAP, DEFAULT_PARAMS, DEFAULT_COOKIES
+from config_manager import PROXIES, ENGINE_MAP, DEFAULT_PARAMS, DEFAULT_COOKIES
 
 
 class BaseSearchModel:
@@ -34,31 +34,67 @@ class BaseSearchModel:
             if self.timeout:
                 network_kwargs["timeout"] = self.timeout
             async with Network(**network_kwargs) as client:
-                if api == "ehentai":
+                if api == "anime_trace":
+                    is_multi = search_params.pop("is_multi", None)
+                    ai_detect = search_params.pop("ai_detect", None)
+                    base64 = search_params.pop("base64", None)
+                    model = search_params.pop("model", None)
+                    engine_instance = engine_class(is_multi=is_multi, ai_detect=ai_detect, client=client)
+                    if base64:
+                        response = await engine_instance.search(base64=base64, model=model, **search_params)
+                    else:
+                        response = await engine_instance.search(file=file, url=url, model=model, **search_params)
+                    return response.show_result()
+                elif api == "ehentai":
                     is_ex = search_params.pop("is_ex", False)
-                    engine_instance = engine_class(is_ex=is_ex, client=client)
+                    covers = search_params.pop("covers", False)
+                    similar = search_params.pop("similar", True)
+                    exp = search_params.pop("exp", False)
+                    engine_instance = engine_class(is_ex=is_ex, covers=covers, similar=similar, exp=exp, client=client)
                 elif api == "saucenao":
                     api_key = search_params.pop("api_key")
                     hide = search_params.pop("hide", 3)
-                    engine_instance = engine_class(api_key=api_key, hide=hide, client=client)
+                    numres = search_params.pop("numres", 5)
+                    minsim = search_params.pop("minsim", 30)
+                    output_type = search_params.pop("output_type", 2)
+                    testmode = search_params.pop("testmode", 0)
+                    dbmask = search_params.pop("dbmask", None)
+                    dbmaski = search_params.pop("dbmaski", None)
+                    db = search_params.pop("db", 999)
+                    dbs = search_params.pop("dbs", None)
+                    engine_instance = engine_class(
+                        api_key=api_key, hide=hide, numres=numres, minsim=minsim,
+                        output_type=output_type, testmode=testmode, dbmask=dbmask,
+                        dbmaski=dbmaski, db=db, dbs=dbs, client=client
+                    )
                 elif api == "google_lens":
                     search_type = search_params.pop("search_type", "exact_matches")
                     hl = search_params.pop("hl", "en")
                     country = search_params.pop("country", "HK")
-                    engine_instance = engine_class(client=client, search_type=search_type, hl=hl, country=country)
+                    q = search_params.get("q", None)
+                    engine_instance = engine_class(
+                        client=client, search_type=search_type, hl=hl, country=country, q=q
+                    )
                 else:
                     engine_instance = engine_class(client=client)
                 response = await engine_instance.search(file=file, url=url, **search_params)
                 return response.show_result()
         except Exception as e:
             return self._format_error(api, str(e))
+            
+    async def search_and_print(self, api: str, file: Union[str, bytes, Path, None] = None,
+                              url: Optional[str] = None, **kwargs: Any) -> None:
+        try:
+            result = await self.search(api=api, file=file, url=url, **kwargs)
+            print(result)
+        except Exception as e:
+            print(f"❌ {api} 搜索失败: {e}")
 
     def _format_error(self, api: str, error_msg: str) -> str:
         if "list index out of range" in error_msg.lower():
             friendly_msg = "未搜索到相关信息"
         else:
             friendly_msg = error_msg
-
         return f"""{'=' * 50}
 {api.upper()} 搜索失败
 {'=' * 50}

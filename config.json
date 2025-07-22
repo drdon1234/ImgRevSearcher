@@ -1,0 +1,55 @@
+{
+  "proxies": "http://127.0.0.1:7897",
+  "default_params": {
+    "anime_trace": {
+      "model": "full_game_model_kira",
+      "is_multi": null,
+      "ai_detect": null,
+      "base64": null
+    },
+    "baidu": {},
+    "bing": {},
+    "copyseeker": {},
+    "ehentai": {
+      "is_ex": false,
+      "covers": false,
+      "similar": true,
+      "exp": false
+    },
+    "google_lens": {
+      "search_type": "exact_matches",
+      "q": null,
+      "hl": "en",
+      "country": "HK"
+    },
+    "saucenao": {
+      "api_key": "a4ab3f81009b003528f7e31aed187fa32a063f58",
+      "hide": 3,
+      "numres": 5,
+      "minsim": 30,
+      "output_type": 2,
+      "testmode": 0,
+      "dbmask": null,
+      "dbmaski": null,
+      "db": 999,
+      "dbs": null
+    },
+    "tineye": {
+      "show_unavailable_domains": false,
+      "domain": "",
+      "tags": "",
+      "sort": "score",
+      "order": "desc"
+    }
+  },
+  "default_cookies": {
+    "anime_trace": null,
+    "baidu": null,
+    "bing": null,
+    "copyseeker": null,
+    "ehentai": null,
+    "google_lens": "AEC=AVh_V2j1uy574ZdQHejl0WJ64XptEwJrMKAFHVh9Z6jWX2NC8USYut_F-Q; NID=525=CAWgxic9AizZ0Ss6iBoG8HF00e5E6qRk1e_t5cUcEGiDEFQgavZH2pIFg_TayKhhtzVYqAS_OAYQYztukxUTEkXYVY1IEUm8j5mDMP1deKuJ21D1Sx45a8vyRbfNx81SJ7AtuwPFGiELykCR1j89hlJzAIitP2A9VwXz0Gh3XKNY9E3eJTmaLUbtdfaQaaD2o-HbjqznBA07YoPdwEGL4uQpqAxFHA; DV=02HpwPZoP-Me0J-HU_sc0eeCc8Yvgxk",
+    "saucenao": null,
+    "tineye": null
+  }
+}
