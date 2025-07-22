@@ -42,3 +42,14 @@ class TineyeResponse(BaseSearchResponse[TineyeItem]):
         self.total_pages: int = resp_data["total_pages"]
         matches = resp_data["matches"]
         self.raw: list[TineyeItem] = [TineyeItem(i) for i in matches] if matches else []
+        
+    def show_result(self) -> str:
+        if not self.raw:
+            return "未找到匹配结果"
+        lines = []
+        for i, item in enumerate(self.raw):
+            lines.append("-" * 50)
+            lines.append(f"原图链接: {item.image_url}")
+            lines.append(f"来源网页: {item.url}")
+        lines.append("-" * 50)
+        return "\n".join(lines)

@@ -118,3 +118,12 @@ class SauceNAOResponse(BaseSearchResponse[SauceNAOItem]):
         self.minimum_similarity: Optional[float] = header.get("minimum_similarity")
         self.results_returned: Optional[int] = header.get("results_returned")
         self.url: str = f"https://saucenao.com/search.php?url=https://saucenao.com{header.get('query_image_display')}"
+
+    def show_result(self) -> str:
+        if self.raw:
+            result = ("-" * 50 + f"\n相似度: {self.raw[0].similarity}%\n"
+                     f"标题: {self.raw[0].title}\n" f"作者: {self.raw[0].author}\n"
+                     f"作者链接: {self.raw[0].author_url}\n" f"作者链接（备用）: {self.raw[0].source}\n"
+                     f"作品链接: {self.raw[0].url}\n" f"更多相关链接: {self.raw[0].ext_urls}\n" + "-" * 50)
+            return result
+        return "未找到匹配结果"

@@ -1,4 +1,6 @@
 from typing import Any
+import json
+from pathlib import Path
 from pyquery import PyQuery
 from typing_extensions import override
 from ..ext_tools import parse_html
@@ -59,3 +61,37 @@ class EHentaiResponse(BaseSearchResponse[EHentaiItem]):
         else:
             gl1t_items = data.find(".itg").children(".gl1t").items()
             self.raw = [EHentaiItem(i) for i in gl1t_items]
+            
+    def show_result(self, translations_file: str = "resource/ehviewer_translations.json") -> str:
+        try:
+            with open(translations_file, 'r', encoding='utf-8') as f:
+                translations = json.load(f)
+        except:
+            translations = {}
+            
+        if not self.raw:
+            return "未找到匹配结果"
+            
+        categorized_tags = {}
+        for tag in self.raw[0].tags:
+            if ':' in tag:
+                category, tag_name = tag.split(':', 1)
+                category_cn = translations.get('rows', {}).get(category, category)
+                tag_name_cn = tag_name
+                if category in translations:
+                    tag_name_cn = translations[category].get(tag_name, tag_name)
+                if category_cn not in categorized_tags:
+                    categorized_tags[category_cn] = []
+                categorized_tags[category_cn].append(tag_name_cn)
+                
+        tag_lines = []
+        for category, tags in categorized_tags.items():
+            tag_line = f"{category}: {'; '.join(tags)}"
+            tag_lines.append(tag_line)
+            
+        type_cn = translations.get('reclass', {}).get(self.raw[0].type.lower(), self.raw[0].type)
+        lines = ["-" * 50, f"链接: {self.raw[0].url}", f"上传时间: {self.raw[0].date}",
+                f"标题: {self.raw[0].title}", f"类型: {type_cn}", f"页数: {self.raw[0].pages}", "标签:"]
+        lines.extend([f"  {tag_line}" for tag_line in tag_lines])
+        lines.append("-" * 50)
+        return "\n".join(lines)

@@ -30,3 +30,9 @@ class CopyseekerResponse(BaseSearchResponse[CopyseekerItem]):
         self.exif: dict[str, Any] = resp_data.get("exif", {})
         self.raw: list[CopyseekerItem] = [CopyseekerItem(page) for page in resp_data.get("pages", [])]
         self.similar_image_urls: list[str] = resp_data.get("visuallySimilarImages", [])
+        
+    def show_result(self) -> str:
+        lines = ["-" * 50, f"匹配图源：{self.raw[0].url if self.raw else '无'}", "相似图片："]
+        lines.extend([f"  {url}" for url in self.similar_image_urls])
+        lines.append("-" * 50)
+        return '\n'.join(lines)

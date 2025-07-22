@@ -130,3 +130,17 @@ class BingResponse(BaseSearchResponse[BingItem]):
     def _handle_entity(self, action: dict[str, Any]) -> None:
         if data := action.get("data"):
             self.entities.append(EntityItem(data))
+            
+    def show_result(self) -> str:
+        lines = ["-" * 50]
+        combined = (self.pages_including or []) + (self.visual_search or [])
+        if combined:
+            for item in combined:
+                lines.append(f"标题：{item.name}")
+                lines.append(f"页面链接：{item.url}")
+                lines.append(f"图片链接：{item.image_url}")
+                lines.append("-" * 50)
+        if self.best_guess:
+            lines.append(f"最佳结果：{self.best_guess}")
+            lines.append("-" * 50)
+        return '\n'.join(lines)

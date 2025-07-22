@@ -166,6 +166,16 @@ class GoogleLensResponse(BaseSearchResponse[GoogleLensItem]):
         image_url_map, base64_image_map = extract_image_maps(html)
         self._parse_search_items(html, image_url_map, base64_image_map)
         self._parse_related_searches(html, image_url_map, base64_image_map)
+        
+    def show_result(self) -> str:
+        if self.raw:
+            lines = ["搜索结果:", "-" * 50]
+            for item in self.raw:
+                lines.append(f"标题: {item.title}")
+                lines.append(f"链接: {item.url}")
+                lines.append("-" * 50)
+            return "\n".join(lines)
+        return "未找到匹配结果"
 
 
 class GoogleLensExactMatchesItem(GoogleLensBaseItem):
@@ -220,3 +230,13 @@ class GoogleLensExactMatchesResponse(BaseSearchResponse[GoogleLensExactMatchesIt
         self.raw: list[GoogleLensExactMatchesItem] = []
         image_url_map, base64_image_map = extract_image_maps(html)
         self.raw = self._parse_search_items(html, image_url_map, base64_image_map)
+        
+    def show_result(self) -> str:
+        if self.raw:
+            lines = ["精确匹配的结果:", "-" * 50]
+            for item in self.raw:
+                lines.append(f"标题: {item.title}")
+                lines.append(f"链接: {item.url}")
+                lines.append("-" * 50)
+            return "\n".join(lines)
+        return "未找到精确匹配结果"

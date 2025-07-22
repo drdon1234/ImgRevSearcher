@@ -28,3 +28,11 @@ class BaiDuResponse(BaseSearchResponse[BaiDuItem]):
                 self.exact_matches.extend(BaiDuItem(i) for i in same_data["list"] if "url" in i and "image_src" in i)
         if data_list := deep_get(resp_data, "data.list"):
             self.raw.extend([BaiDuItem(i) for i in data_list])
+            
+    def show_result(self) -> str:
+        lines = ["-" * 50, "相关结果:", f"  链接: {self.raw[0].url if self.raw else '无'}"]
+        if self.exact_matches:
+            lines.extend(["-" * 50, "最佳结果:", f"  标题: {self.exact_matches[0].title}",
+                         f"  链接: {self.exact_matches[0].url}"])
+        lines.append("-" * 50)
+        return "\n".join(lines)
