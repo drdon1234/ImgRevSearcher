@@ -121,9 +121,19 @@ class SauceNAOResponse(BaseSearchResponse[SauceNAOItem]):
 
     def show_result(self) -> str:
         if self.raw:
-            result = ("-" * 50 + f"\n相似度: {self.raw[0].similarity}%\n"
-                     f"标题: {self.raw[0].title}\n" f"作者: {self.raw[0].author}\n"
-                     f"作者链接: {self.raw[0].author_url}\n" f"作者链接（备用）: {self.raw[0].source}\n"
-                     f"作品链接: {self.raw[0].url}\n" f"更多相关链接: {self.raw[0].ext_urls}\n" + "-" * 50)
-            return result
+            result = ["-" * 50]
+            result.append(f"相似度: {self.raw[0].similarity}%")
+            result.append(f"标题: {self.raw[0].title}")
+            result.append(f"作者: {self.raw[0].author}")
+            result.append(f"作者链接: {self.raw[0].author_url}")
+            result.append(f"作者链接（备用）: {self.raw[0].source}")
+            result.append(f"作品链接: {self.raw[0].url}")
+            if self.raw[0].ext_urls:
+                result.append("更多相关链接:")
+                for i, url in enumerate(self.raw[0].ext_urls, 1):
+                    result.append(f"  #{i} {url}")
+            else:
+                result.append("更多相关链接: 无")
+            result.append("-" * 50)
+            return "\n".join(result)
         return "未找到匹配结果"
