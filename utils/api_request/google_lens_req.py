@@ -17,6 +17,7 @@ class GoogleLens(BaseSearchReq[Union[GoogleLensResponse, GoogleLensExactMatchesR
         q: Optional[str] = None,
         hl: str = "en",
         country: str = "US",
+        max_results: int = 50,
         **request_kwargs: Any,
     ):
         super().__init__(base_url, **request_kwargs)
@@ -25,10 +26,13 @@ class GoogleLens(BaseSearchReq[Union[GoogleLensResponse, GoogleLensExactMatchesR
             raise ValueError(f"Invalid search_type: {search_type}. Must be one of {valid_search_types}")
         if search_type == "exact_matches" and q:
             raise ValueError("Query parameter 'q' is not applicable for 'exact_matches' search_type.")
+        if max_results <= 0:
+            raise ValueError("max_results must be a positive integer")
         self.search_url: str = search_url
         self.hl_param: str = f"{hl}-{country.upper()}"
         self.search_type: str = search_type
         self.q: Optional[str] = q
+        self.max_results: int = max_results
 
     async def _perform_image_search(
         self,
@@ -84,6 +88,10 @@ class GoogleLens(BaseSearchReq[Union[GoogleLensResponse, GoogleLensExactMatchesR
             q = None
         resp = await self._perform_image_search(url, file, q)
         if self.search_type == "exact_matches":
-            return GoogleLensExactMatchesResponse(resp.text, resp.url)
+            response = GoogleLensExactMatchesResponse(resp.text, resp.url)
+            response._parse_response(resp.text, resp_url=resp.url, max_results=self.max_results)
+            return response
         else:
-            return GoogleLensResponse(resp.text, resp.url)
+            response = GoogleLensResponse(resp.text, resp.url)
+            response._parse_response(resp.text, resp_url=resp.url, max_results=self.max_results)
+            return response

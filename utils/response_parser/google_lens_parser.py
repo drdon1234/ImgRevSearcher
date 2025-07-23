@@ -141,10 +141,12 @@ class GoogleLensResponse(BaseSearchResponse[GoogleLensItem]):
         super().__init__(resp_data, resp_url, **kwargs)
 
     def _parse_search_items(
-        self, html: PyQuery, image_url_map: dict[str, str], base64_image_map: dict[str, str]
+        self, html: PyQuery, image_url_map: dict[str, str], base64_image_map: dict[str, str], max_results: int = 0
     ) -> None:
         items_elements = html(".vEWxFf.RCxtQc.my5z3d")
-        for el in items_elements:
+        for idx, el in enumerate(items_elements):
+            if max_results > 0 and idx >= max_results:
+                break
             item = GoogleLensItem(PyQuery(el), image_url_map, base64_image_map)
             self.raw.append(item)
 
@@ -163,8 +165,9 @@ class GoogleLensResponse(BaseSearchResponse[GoogleLensItem]):
         self.url: str = kwargs.get("resp_url", "")
         self.raw: list[GoogleLensItem] = []
         self.related_searches: list[GoogleLensRelatedSearchItem] = []
+        max_results = kwargs.get("max_results", 0)
         image_url_map, base64_image_map = extract_image_maps(html)
-        self._parse_search_items(html, image_url_map, base64_image_map)
+        self._parse_search_items(html, image_url_map, base64_image_map, max_results)
         self._parse_related_searches(html, image_url_map, base64_image_map)
         
     def show_result(self) -> str:
@@ -215,10 +218,13 @@ class GoogleLensExactMatchesResponse(BaseSearchResponse[GoogleLensExactMatchesIt
         html: PyQuery,
         image_url_map: dict[str, str],
         base64_image_map: dict[str, str],
+        max_results: int = 0,
     ) -> list[GoogleLensExactMatchesItem]:
         items = []
         items_elements = html(".YxbOwd")
-        for el in items_elements:
+        for idx, el in enumerate(items_elements):
+            if max_results > 0 and idx >= max_results:
+                break
             item = GoogleLensExactMatchesItem(PyQuery(el), image_url_map, base64_image_map)
             items.append(item)
         return items
@@ -229,8 +235,9 @@ class GoogleLensExactMatchesResponse(BaseSearchResponse[GoogleLensExactMatchesIt
         self.origin: PyQuery = html
         self.url: str = kwargs.get("resp_url", "")
         self.raw: list[GoogleLensExactMatchesItem] = []
+        max_results = kwargs.get("max_results", 0)
         image_url_map, base64_image_map = extract_image_maps(html)
-        self.raw = self._parse_search_items(html, image_url_map, base64_image_map)
+        self.raw = self._parse_search_items(html, image_url_map, base64_image_map, max_results)
         
     def show_result(self) -> str:
         if self.raw:

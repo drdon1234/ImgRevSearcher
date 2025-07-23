@@ -80,8 +80,9 @@ class BaseSearchModel:
                     hl = search_params.pop("hl", "en")
                     country = search_params.pop("country", "HK")
                     q = search_params.get("q", None)
+                    max_results = search_params.pop("max_results", 50)
                     engine_instance = engine_class(
-                        client=client, search_type=search_type, hl=hl, country=country, q=q
+                        client=client, search_type=search_type, hl=hl, country=country, q=q, max_results=max_results
                     )
                 else:
                     engine_instance = engine_class(client=client)
@@ -108,7 +109,7 @@ class BaseSearchModel:
             margin = 20
             lines = result.split('\n')
             base_dir = Path(__file__).parent
-            font_path = str(base_dir / "resource/font/NotoSans_Condensed-Medium.ttf")
+            font_path = str(base_dir / "resource/font/NotoSans-Medium.ttf")
             try:
                 font = ImageFont.truetype(font_path, 18)
                 title_font = ImageFont.truetype(font_path, 24)

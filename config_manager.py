@@ -1,5 +1,5 @@
 import json
-import os
+from pathlib import Path
 from utils.api_request import AnimeTrace, BaiDu, Bing, Copyseeker, EHentai, GoogleLens, SauceNAO, Tineye
 
 
@@ -14,7 +14,7 @@ ENGINE_MAP = {
     "tineye": Tineye,
 }
 
-CONFIG_FILE = os.path.join(os.path.dirname(__file__), "config.json")
+CONFIG_FILE = Path(__file__).parent / "config.json"
 
 DEFAULT_CONFIG = {
     "proxies": "http://127.0.0.1:7897",
@@ -38,7 +38,8 @@ DEFAULT_CONFIG = {
             "search_type": "exact_matches",
             "q": None,
             "hl": "en",
-            "country": "HK"
+            "country": "HK",
+            "max_results": 50
         },
         "saucenao": {
             "api_key": "a4ab3f81009b003528f7e31aed187fa32a063f58",
@@ -80,7 +81,7 @@ try:
     DEFAULT_COOKIES = config.get("default_cookies", DEFAULT_CONFIG["default_cookies"])
 except (FileNotFoundError, json.JSONDecodeError):
     print(f"配置文件 {CONFIG_FILE} 不存在或格式错误，使用默认配置。")
-    os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
+    CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
         json.dump(DEFAULT_CONFIG, f, ensure_ascii=False, indent=2)
     PROXIES = DEFAULT_CONFIG["proxies"]
