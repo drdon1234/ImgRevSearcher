@@ -6,6 +6,15 @@ from ..response_parser import GoogleLensExactMatchesResponse, GoogleLensResponse
 from ..network import RESP
 from ..ext_tools import read_file
 from .base_req import BaseSearchReq
+from ..types import SearchType, FileContent
+
+
+VALID_SEARCH_TYPES = ["all", "products", "visual_matches", "exact_matches"]
+SEARCH_TYPE_UDM = {
+    "products": "37",
+    "visual_matches": "44",
+    "exact_matches": "48"
+}
 
 
 class GoogleLens(BaseSearchReq[Union[GoogleLensResponse, GoogleLensExactMatchesResponse]]):
@@ -21,9 +30,8 @@ class GoogleLens(BaseSearchReq[Union[GoogleLensResponse, GoogleLensExactMatchesR
         **request_kwargs: Any,
     ):
         super().__init__(base_url, **request_kwargs)
-        valid_search_types = ["all", "products", "visual_matches", "exact_matches"]
-        if search_type not in valid_search_types:
-            raise ValueError(f"Invalid search_type: {search_type}. Must be one of {valid_search_types}")
+        if search_type not in VALID_SEARCH_TYPES:
+            raise ValueError(f"无效的search_type: {search_type}。必须是以下之一: {', '.join(VALID_SEARCH_TYPES)}")
         if search_type == "exact_matches" and q:
             raise ValueError("Query parameter 'q' is not applicable for 'exact_matches' search_type.")
         if max_results <= 0:
@@ -37,7 +45,7 @@ class GoogleLens(BaseSearchReq[Union[GoogleLensResponse, GoogleLensExactMatchesR
     async def _perform_image_search(
         self,
         url: Optional[str] = None,
-        file: Union[str, bytes, Path, None] = None,
+        file: FileContent = None,
         q: Optional[str] = None,
     ) -> RESP:
         params = {"hl": self.hl_param}
@@ -65,13 +73,11 @@ class GoogleLens(BaseSearchReq[Union[GoogleLensResponse, GoogleLensExactMatchesR
             raise ValueError("Either 'url' or 'file' must be provided")
         dom = PyQuery(resp.text)
         exact_link = ""
-        if self.search_type != "all":
-            if udm_value := {
-                "products": "37",
-                "visual_matches": "44",
-                "exact_matches": "48",
-            }.get(self.search_type):
-                exact_link = dom(f'a[href*="udm={udm_value}"]').attr("href") or ""
+        
+        if self.search_type != "all" and self.search_type in SEARCH_TYPE_UDM:
+            udm_value = SEARCH_TYPE_UDM[self.search_type]
+            exact_link = dom(f'a[href*="udm={udm_value}"]').attr("href") or ""
+            
         if exact_link:
             return await self._send_request(method="get", url=f"{self.search_url}{exact_link}")
         return resp
@@ -80,7 +86,7 @@ class GoogleLens(BaseSearchReq[Union[GoogleLensResponse, GoogleLensExactMatchesR
     async def search(
         self,
         url: Optional[str] = None,
-        file: Union[str, bytes, Path, None] = None,
+        file: FileContent = None,
         q: Optional[str] = None,
         **kwargs: Any,
     ) -> Union[GoogleLensResponse, GoogleLensExactMatchesResponse]:

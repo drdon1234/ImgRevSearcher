@@ -1,11 +1,23 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Optional, Union
+from pathlib import Path
 
 
 class DomainTag(str, Enum):
     STOCK = "stock"
     COLLECTION = "collection"
+
+
+class SearchType(str, Enum):
+    ALL = "all"
+    PRODUCTS = "products" 
+    VISUAL_MATCHES = "visual_matches"
+    EXACT_MATCHES = "exact_matches"
+
+
+FilePath = Union[str, Path]
+FileContent = Union[str, bytes, FilePath, None]
 
 
 @dataclass

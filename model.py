@@ -3,6 +3,7 @@ from typing import Any, Optional, Union
 import datetime
 from utils import Network
 from config_manager import PROXIES, ENGINE_MAP, DEFAULT_PARAMS, DEFAULT_COOKIES
+from utils.types import FileContent
 import io
 
 try:
@@ -20,8 +21,48 @@ class BaseSearchModel:
         self.cookies = cookies
         self.timeout = timeout
         self.config = kwargs
+    
+    def _prepare_engine_params(self, api: str, search_params: dict) -> dict:
+        """根据API类型准备引擎参数"""
+        engine_params = {}
+        
+        if api == "anime_trace":
+            engine_params = {
+                "is_multi": search_params.pop("is_multi", None),
+                "ai_detect": search_params.pop("ai_detect", None)
+            }
+        elif api == "ehentai":
+            engine_params = {
+                "is_ex": search_params.pop("is_ex", False),
+                "covers": search_params.pop("covers", False),
+                "similar": search_params.pop("similar", True),
+                "exp": search_params.pop("exp", False)
+            }
+        elif api == "saucenao":
+            engine_params = {
+                "api_key": search_params.pop("api_key"),
+                "hide": search_params.pop("hide", 3),
+                "numres": search_params.pop("numres", 5),
+                "minsim": search_params.pop("minsim", 30),
+                "output_type": search_params.pop("output_type", 2),
+                "testmode": search_params.pop("testmode", 0),
+                "dbmask": search_params.pop("dbmask", None),
+                "dbmaski": search_params.pop("dbmaski", None),
+                "db": search_params.pop("db", 999),
+                "dbs": search_params.pop("dbs", None)
+            }
+        elif api == "google_lens":
+            engine_params = {
+                "search_type": search_params.pop("search_type", "exact_matches"),
+                "hl": search_params.pop("hl", "en"),
+                "country": search_params.pop("country", "HK"),
+                "q": search_params.get("q", None),
+                "max_results": search_params.pop("max_results", 50)
+            }
+        
+        return engine_params
 
-    async def search(self, api: str, file: Union[str, bytes, Path, None] = None,
+    async def search(self, api: str, file: FileContent = None,
                      url: Optional[str] = None, **kwargs: Any) -> str:
         if api not in ENGINE_MAP:
             available = ", ".join(ENGINE_MAP.keys())
@@ -34,65 +75,36 @@ class BaseSearchModel:
             engine_class = ENGINE_MAP[api]
             default_params = DEFAULT_PARAMS.get(api, {})
             search_params = {**default_params, **kwargs}
+            
             network_kwargs = {}
             if self.proxies:
                 network_kwargs["proxies"] = self.proxies
+            
             effective_cookies = self.cookies or DEFAULT_COOKIES.get(api)
             if effective_cookies:
                 network_kwargs["cookies"] = effective_cookies
+                
             if self.timeout:
                 network_kwargs["timeout"] = self.timeout
+                
             async with Network(**network_kwargs) as client:
-                if api == "anime_trace":
-                    is_multi = search_params.pop("is_multi", None)
-                    ai_detect = search_params.pop("ai_detect", None)
-                    base64 = search_params.pop("base64", None)
-                    model = search_params.pop("model", None)
-                    engine_instance = engine_class(is_multi=is_multi, ai_detect=ai_detect, client=client)
-                    if base64:
-                        response = await engine_instance.search(base64=base64, model=model, **search_params)
-                    else:
-                        response = await engine_instance.search(file=file, url=url, model=model, **search_params)
-                    return response.show_result()
-                elif api == "ehentai":
-                    is_ex = search_params.pop("is_ex", False)
-                    covers = search_params.pop("covers", False)
-                    similar = search_params.pop("similar", True)
-                    exp = search_params.pop("exp", False)
-                    engine_instance = engine_class(is_ex=is_ex, covers=covers, similar=similar, exp=exp, client=client)
-                elif api == "saucenao":
-                    api_key = search_params.pop("api_key")
-                    hide = search_params.pop("hide", 3)
-                    numres = search_params.pop("numres", 5)
-                    minsim = search_params.pop("minsim", 30)
-                    output_type = search_params.pop("output_type", 2)
-                    testmode = search_params.pop("testmode", 0)
-                    dbmask = search_params.pop("dbmask", None)
-                    dbmaski = search_params.pop("dbmaski", None)
-                    db = search_params.pop("db", 999)
-                    dbs = search_params.pop("dbs", None)
-                    engine_instance = engine_class(
-                        api_key=api_key, hide=hide, numres=numres, minsim=minsim,
-                        output_type=output_type, testmode=testmode, dbmask=dbmask,
-                        dbmaski=dbmaski, db=db, dbs=dbs, client=client
-                    )
-                elif api == "google_lens":
-                    search_type = search_params.pop("search_type", "exact_matches")
-                    hl = search_params.pop("hl", "en")
-                    country = search_params.pop("country", "HK")
-                    q = search_params.get("q", None)
-                    max_results = search_params.pop("max_results", 50)
-                    engine_instance = engine_class(
-                        client=client, search_type=search_type, hl=hl, country=country, q=q, max_results=max_results
+                engine_params = self._prepare_engine_params(api, search_params)
+                engine_instance = engine_class(client=client, **engine_params)
+                
+                if api == "anime_trace" and search_params.get("base64"):
+                    response = await engine_instance.search(
+                        base64=search_params.pop("base64"), 
+                        model=search_params.pop("model", None), 
+                        **search_params
                     )
                 else:
-                    engine_instance = engine_class(client=client)
-                response = await engine_instance.search(file=file, url=url, **search_params)
+                    response = await engine_instance.search(file=file, url=url, **search_params)
+                    
                 return response.show_result()
         except Exception as e:
             return self._format_error(api, str(e))
 
-    async def search_and_print(self, api: str, file: Union[str, bytes, Path, None] = None,
+    async def search_and_print(self, api: str, file: FileContent = None,
                                url: Optional[str] = None, **kwargs: Any) -> None:
         try:
             result = await self.search(api=api, file=file, url=url, **kwargs)
@@ -100,7 +112,7 @@ class BaseSearchModel:
         except Exception as e:
             print(f"❌ {api} 搜索失败: {e}")
 
-    async def search_and_draw(self, api: str, file: Union[str, bytes, Path, None] = None,
+    async def search_and_draw(self, api: str, file: FileContent = None,
                               url: Optional[str] = None, is_auto_save: bool = False, **kwargs: Any) -> Image.Image:
         if not PIL_AVAILABLE:
             raise ImportError("需要安装Pillow库以使用图像绘制功能，请运行: pip install pillow")
@@ -220,10 +232,7 @@ class BaseSearchModel:
             return img
 
     def _format_error(self, api: str, error_msg: str) -> str:
-        if "list index out of range" in error_msg.lower():
-            friendly_msg = "未搜索到相关信息"
-        else:
-            friendly_msg = error_msg
+        friendly_msg = "未搜索到相关信息" if "list index out of range" in error_msg.lower() else error_msg
         return f"""{'=' * 50}
 {api.upper()} 搜索失败
 {'=' * 50}

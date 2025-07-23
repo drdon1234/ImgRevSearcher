@@ -73,19 +73,24 @@ DEFAULT_CONFIG = {
     }
 }
 
-try:
-    with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
-        config = json.load(f)
-    PROXIES = config.get("proxies", DEFAULT_CONFIG["proxies"])
-    DEFAULT_PARAMS = config.get("default_params", DEFAULT_CONFIG["default_params"])
-    DEFAULT_COOKIES = config.get("default_cookies", DEFAULT_CONFIG["default_cookies"])
-except (FileNotFoundError, json.JSONDecodeError):
-    print(f"配置文件 {CONFIG_FILE} 不存在或格式错误，使用默认配置。")
-    CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
-        json.dump(DEFAULT_CONFIG, f, ensure_ascii=False, indent=2)
-    PROXIES = DEFAULT_CONFIG["proxies"]
-    DEFAULT_PARAMS = DEFAULT_CONFIG["default_params"]
-    DEFAULT_COOKIES = DEFAULT_CONFIG["default_cookies"]
+
+def load_config(config_path: Path = CONFIG_FILE) -> dict:
+    """加载配置，如果配置文件不存在或格式错误则使用默认配置"""
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"配置文件 {config_path} 不存在或格式错误，使用默认配置。错误: {e}")
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(DEFAULT_CONFIG, f, ensure_ascii=False, indent=2)
+        return DEFAULT_CONFIG
+
+
+# 加载配置
+config = load_config()
+PROXIES = config.get("proxies", DEFAULT_CONFIG["proxies"])
+DEFAULT_PARAMS = config.get("default_params", DEFAULT_CONFIG["default_params"])
+DEFAULT_COOKIES = config.get("default_cookies", DEFAULT_CONFIG["default_cookies"])
 
 __all__ = ["PROXIES", "ENGINE_MAP", "DEFAULT_PARAMS", "DEFAULT_COOKIES"]

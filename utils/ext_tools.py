@@ -7,31 +7,27 @@ from pyquery import PyQuery
 
 def deep_get(dictionary: dict[str, Any], keys: str) -> Optional[Any]:
     for key in keys.split("."):
-        if list_search := re.search(r"(\S+)?\[(\d+)]", key):
-            try:
-                if list_search[1]:
-                    dictionary = dictionary[list_search[1]]
-                dictionary = dictionary[int(list_search[2])]
-            except (KeyError, IndexError):
-                return None
-        else:
-            try:
+        match = re.search(r"(\S+)?\[(\d+)]", key)
+        try:
+            if match:
+                if match[1]:
+                    dictionary = dictionary[match[1]]
+                dictionary = dictionary[int(match[2])]
+            else:
                 dictionary = dictionary[key]
-            except (KeyError, TypeError):
-                return None
+        except (KeyError, IndexError, TypeError):
+            return None
     return dictionary
 
 
 def read_file(file: Union[str, bytes, Path]) -> bytes:
     if isinstance(file, bytes):
         return file
-    if not Path(file).exists():
-        raise FileNotFoundError(f"The file {file} does not exist.")
     try:
-        with open(file, "rb") as f:
-            return f.read()
-    except OSError as e:
-        raise OSError(f"An I/O error occurred while reading the file {file}: {e}") from e
+        return Path(file).read_bytes()
+    except (FileNotFoundError, OSError) as e:
+        error_type = "FileNotFoundError" if isinstance(e, FileNotFoundError) else "OSError"
+        raise type(e)(f"{error_type}：读取文件 {file} 时出错: {e}") from e
 
 
 def parse_html(html: str) -> PyQuery:

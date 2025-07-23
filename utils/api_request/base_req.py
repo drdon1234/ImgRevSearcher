@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from pathlib import Path
-from typing import Any, Generic, Optional, TypeVar, Union
+from typing import Any, Generic, Optional, TypeVar
 from ..response_parser.base_parser import BaseSearchResponse
 from ..network import RESP, HandOver
+from ..types import FileContent
 
 ResponseT = TypeVar("ResponseT")
 T = TypeVar("T", bound=BaseSearchResponse[Any])
@@ -19,7 +19,7 @@ class BaseSearchReq(HandOver, ABC, Generic[T]):
     async def search(
         self,
         url: Optional[str] = None,
-        file: Union[str, bytes, Path, None] = None,
+        file: FileContent = None,
         **kwargs: Any,
     ) -> T:
         raise NotImplementedError

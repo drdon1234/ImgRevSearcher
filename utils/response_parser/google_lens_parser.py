@@ -16,12 +16,8 @@ def get_site_name(url: Optional[str]) -> str:
 
 
 def parse_image_size(html: PyQuery) -> Optional[str]:
-    info_spans = html("div.oYQBg.Zn52Me > span")
-    for span in info_spans.items():
-        text = span.text()
-        if text and "x" in text:
-            return text
-    return None
+    return next((span.text() for span in html("div.oYQBg.Zn52Me > span").items() 
+                if span.text() and "x" in span.text()), None)
 
 
 def extract_ldi_images(script_text: str, image_url_map: dict[str, str]) -> None:
@@ -81,14 +77,12 @@ class GoogleLensBaseItem(BaseResParser):
     def _extract_image_url(self, image_element: PyQuery) -> str:
         if not image_element:
             return ""
-        if image_id := image_element.attr("data-iid") or image_element.attr("id"):
-            if image_id in self.image_url_map:
-                return self.image_url_map[image_id]
-            if image_id in self.base64_image_map:
-                return self.base64_image_map[image_id]
-        if data_src := image_element.attr("data-src"):
-            return data_src
-        return src if (src := image_element.attr("src")) else ""
+        
+        image_id = image_element.attr("data-iid") or image_element.attr("id")
+        if image_id:
+            return self.image_url_map.get(image_id, "") or self.base64_image_map.get(image_id, "")
+            
+        return image_element.attr("data-src") or image_element.attr("src") or ""
 
 
 class GoogleLensItem(GoogleLensBaseItem):

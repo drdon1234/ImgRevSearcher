@@ -1,5 +1,6 @@
+from dataclasses import dataclass
 from types import TracebackType
-from typing import Any, NamedTuple, Optional, Union
+from typing import Any, Optional, Union
 from httpx import AsyncClient, QueryParams, create_ssl_context
 
 DEFAULT_HEADERS = {
@@ -23,12 +24,11 @@ class Network:
         http2: bool = False,
     ):
         self.internal: bool = internal
-        headers = {**DEFAULT_HEADERS, **headers} if headers else DEFAULT_HEADERS
+        headers = {**DEFAULT_HEADERS, **(headers or {})}
         self.cookies: dict[str, str] = {}
         if cookies:
-            for line in cookies.split(";"):
-                key, value = line.strip().split("=", 1)
-                self.cookies[key] = value
+            self.cookies = {k.strip(): v for k, v in (c.strip().split("=", 1) 
+                           for c in cookies.split(";") if "=" in c)}
         ssl_context = create_ssl_context(verify=verify_ssl)
         ssl_context.set_ciphers("DEFAULT")
         self.client: AsyncClient = AsyncClient(
@@ -93,7 +93,8 @@ class ClientManager:
             await self.client.close()
 
 
-class RESP(NamedTuple):
+@dataclass
+class RESP:
     text: str
     url: str
     status_code: int
