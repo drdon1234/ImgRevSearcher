@@ -105,7 +105,6 @@ class BaseSearchModel:
             raise ImportError("需要安装Pillow库以使用图像绘制功能，请运行: pip install pillow")
         try:
             result = await self.search(api=api, file=file, url=url, **kwargs)
-            width = 800
             margin = 20
             lines = result.split('\n')
             base_dir = Path(__file__).parent
@@ -116,14 +115,31 @@ class BaseSearchModel:
             except IOError:
                 font = ImageFont.load_default()
                 title_font = ImageFont.load_default()
-            line_height = 25
-            total_height = margin * 2 + line_height * len(lines)
+            title_text = f"{api.upper()} 搜索结果"
+            if hasattr(title_font, "getbbox"):
+                title_width = title_font.getbbox(title_text)[2] + margin * 2
+            else:
+                title_width = title_font.getsize(title_text)[0] + margin * 2
+            max_text_width = 0
+            for line in lines:
+                if hasattr(font, "getbbox"):
+                    line_width = font.getbbox(line)[2] + margin * 2
+                else:
+                    line_width = font.getsize(line)[0] + margin * 2
+                max_text_width = max(max_text_width, line_width)
+            width = max(800, title_width, max_text_width)
+            if hasattr(font, "getbbox"):
+                line_height = max(25, font.getbbox("Ay")[3] + 7)
+            else:
+                line_height = max(25, font.getsize("Ay")[1] + 7)
+            header_height = 60
+            content_height = margin + line_height * len(lines)
+            total_height = header_height + content_height
             img = Image.new('RGB', (width, total_height), color='white')
             draw = ImageDraw.Draw(img)
-            draw.rectangle([(0, 0), (width, 60)], fill='#4a6ea9')
-            title_text = f"{api.upper()} 搜索结果"
+            draw.rectangle([(0, 0), (width, header_height)], fill='#4a6ea9')
             draw.text((margin, margin), title_text, font=title_font, fill='white')
-            y_position = 60 + margin
+            y_position = header_height + margin
             for line in lines:
                 if line.startswith('='):
                     draw.line([(margin, y_position), (width - margin, y_position)], fill='#cccccc', width=1)
@@ -144,11 +160,13 @@ class BaseSearchModel:
             draw = ImageDraw.Draw(img)
             draw.rectangle([(0, 0), (width, 60)], fill='#e74c3c')
             try:
+                font_path = str(Path(__file__).parent / "resource/font/arialuni.ttf")
                 font = ImageFont.truetype(font_path, 18)
                 title_font = ImageFont.truetype(font_path, 24)
             except IOError:
                 font = ImageFont.load_default()
                 title_font = ImageFont.load_default()
+            margin = 20
             draw.text((margin, margin), f"{api.upper()} 搜索失败", font=title_font, fill='white')
             draw.text((margin, 80), f"错误信息: {str(e)}", font=font, fill='black')
             if is_auto_save:
