@@ -8,14 +8,40 @@ from .base_parser import BaseResParser, BaseSearchResponse
 
 
 class EHentaiItem(BaseResParser):
+    """
+    E-Hentai搜索结果项解析器
+    
+    解析单个画廊结果，提取标题、URL、缩略图、类型、日期、页数和标签等信息
+    """
+    
     def __init__(self, data: PyQuery, **kwargs: Any):
+        """
+        初始化E-Hentai结果项解析器
+        
+        参数:
+            data: 包含结果项HTML的PyQuery对象
+            **kwargs: 其他解析参数
+        """
         super().__init__(data, **kwargs)
 
     @override
     def _parse_data(self, data: PyQuery, **kwargs: Any) -> None:
+        """
+        解析E-Hentai结果数据
+        
+        参数:
+            data: 包含结果项HTML的PyQuery对象
+            **kwargs: 其他解析参数
+        """
         self._arrange(data)
 
     def _arrange(self, data: PyQuery) -> None:
+        """
+        整理和提取E-Hentai结果项中的各项数据
+        
+        参数:
+            data: 包含结果项HTML的PyQuery对象
+        """
         glink = data.find(".glink")
         self.title: str = glink.text()
         if glink.parent("div"):
@@ -47,11 +73,32 @@ class EHentaiItem(BaseResParser):
 
 
 class EHentaiResponse(BaseSearchResponse[EHentaiItem]):
+    """
+    E-Hentai搜索响应解析器
+    
+    解析完整的E-Hentai搜索响应，包含多个画廊结果
+    """
+    
     def __init__(self, resp_data: str, resp_url: str, **kwargs: Any):
+        """
+        初始化E-Hentai响应解析器
+        
+        参数:
+            resp_data: 原始HTML响应数据
+            resp_url: 响应URL
+            **kwargs: 其他解析参数
+        """
         super().__init__(resp_data, resp_url, **kwargs)
 
     @override
     def _parse_response(self, resp_data: str, **kwargs: Any) -> None:
+        """
+        解析E-Hentai响应数据
+        
+        参数:
+            resp_data: 原始HTML响应数据
+            **kwargs: 其他解析参数
+        """
         data = parse_html(resp_data)
         self.origin: PyQuery = data
         if "No unfiltered results" in resp_data:
@@ -63,6 +110,17 @@ class EHentaiResponse(BaseSearchResponse[EHentaiItem]):
             self.raw = [EHentaiItem(i) for i in gl1t_items]
             
     def show_result(self, translations_file: str = "resource/translations/ehviewer_translations.json") -> str:
+        """
+        生成可读的搜索结果文本
+        
+        支持使用翻译文件将标签翻译为本地语言
+        
+        参数:
+            translations_file: 翻译文件路径
+            
+        返回:
+            str: 格式化的搜索结果文本
+        """
         try:
             base_dir = Path(__file__).parent.parent.parent
             abs_translations_file = base_dir / translations_file

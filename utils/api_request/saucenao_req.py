@@ -9,6 +9,12 @@ from .base_req import BaseSearchReq
 
 
 class SauceNAO(BaseSearchReq[SauceNAOResponse]):
+    """
+    SauceNAO搜索请求类
+    
+    用于与SauceNAO图像搜索API交互，支持多种搜索参数配置
+    """
+    
     def __init__(
         self,
         base_url: str = "https://saucenao.com",
@@ -24,6 +30,23 @@ class SauceNAO(BaseSearchReq[SauceNAOResponse]):
         dbs: Optional[list[int]] = None,
         **request_kwargs: Any,
     ):
+        """
+        初始化SauceNAO搜索请求
+        
+        参数:
+            base_url: SauceNAO API的基础URL
+            api_key: SauceNAO API密钥
+            numres: 返回的结果数量
+            hide: 隐藏选项(0=不隐藏，1=隐藏已知来源，2=隐藏未知来源，3=隐藏所有来源)
+            minsim: 最小相似度阈值(0-100)
+            output_type: 输出类型(0=HTML，1=XML，2=JSON)
+            testmode: 测试模式(0=关闭，1=开启)
+            dbmask: 数据库掩码
+            dbmaski: 数据库索引掩码
+            db: 数据库索引
+            dbs: 数据库索引列表
+            **request_kwargs: 其他请求参数
+        """
         base_url = f"{base_url}/search.php"
         super().__init__(base_url, **request_kwargs)
         params: dict[str, Any] = {
@@ -53,6 +76,20 @@ class SauceNAO(BaseSearchReq[SauceNAOResponse]):
         file: Union[str, bytes, Path, None] = None,
         **kwargs: Any,
     ) -> SauceNAOResponse:
+        """
+        执行SauceNAO图像搜索
+        
+        参数:
+            url: 图像URL
+            file: 本地文件内容
+            **kwargs: 其他搜索参数
+            
+        返回:
+            SauceNAOResponse: 搜索响应对象
+            
+        异常:
+            ValueError: 当未提供url或file参数时抛出
+        """
         params = self.params
         files: Optional[dict[str, Any]] = None
         if url:

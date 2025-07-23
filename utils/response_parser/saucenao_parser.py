@@ -4,11 +4,31 @@ from .base_parser import BaseResParser, BaseSearchResponse
 
 
 class SauceNAOItem(BaseResParser):
+    """
+    SauceNAO搜索结果项解析器
+    
+    解析单个搜索结果，提取标题、URL、作者等信息
+    """
+    
     def __init__(self, data: dict[str, Any], **kwargs: Any):
+        """
+        初始化SauceNAO结果项解析器
+        
+        参数:
+            data: 原始结果数据
+            **kwargs: 其他解析参数
+        """
         super().__init__(data, **kwargs)
 
     @override
     def _parse_data(self, data: dict[str, Any], **kwargs: Any) -> None:
+        """
+        解析SauceNAO结果数据
+        
+        参数:
+            data: 原始结果数据
+            **kwargs: 其他解析参数
+        """
         header = data["header"]
         self.similarity: float = float(header["similarity"])
         self.thumbnail: str = header["thumbnail"]
@@ -24,6 +44,15 @@ class SauceNAOItem(BaseResParser):
 
     @staticmethod
     def _get_title(data: dict[str, Any]) -> str:
+        """
+        从数据中提取标题
+        
+        参数:
+            data: 结果数据字典
+            
+        返回:
+            str: 提取的标题
+        """
         return (
             next(
                 (
@@ -45,6 +74,17 @@ class SauceNAOItem(BaseResParser):
 
     @staticmethod
     def _get_url(data: dict[str, Any]) -> str:
+        """
+        从数据中提取URL
+        
+        根据不同来源网站的ID格式化对应的URL
+        
+        参数:
+            data: 结果数据字典
+            
+        返回:
+            str: 提取的URL
+        """
         if "pixiv_id" in data:
             return f"https://www.pixiv.net/artworks/{data['pixiv_id']}"
         elif "pawoo_id" in data:
@@ -57,6 +97,15 @@ class SauceNAOItem(BaseResParser):
 
     @staticmethod
     def _get_author(data: dict[str, Any]) -> str:
+        """
+        从数据中提取作者信息
+        
+        参数:
+            data: 结果数据字典
+            
+        返回:
+            str: 提取的作者名称
+        """
         return (
             next(
                 (
@@ -81,6 +130,17 @@ class SauceNAOItem(BaseResParser):
 
     @staticmethod
     def _get_author_url(data: dict[str, Any]) -> str:
+        """
+        从数据中提取作者URL
+        
+        根据不同来源网站的ID格式化对应的作者主页URL
+        
+        参数:
+            data: 结果数据字典
+            
+        返回:
+            str: 提取的作者URL
+        """
         if "pixiv_id" in data:
             return f"https://www.pixiv.net/users/{data['member_id']}"
         elif "seiga_id" in data:
@@ -97,11 +157,32 @@ class SauceNAOItem(BaseResParser):
 
 
 class SauceNAOResponse(BaseSearchResponse[SauceNAOItem]):
+    """
+    SauceNAO搜索响应解析器
+    
+    解析完整的SauceNAO API响应，包含多个搜索结果和API限制信息
+    """
+    
     def __init__(self, resp_data: dict[str, Any], resp_url: str, **kwargs: Any) -> None:
+        """
+        初始化SauceNAO响应解析器
+        
+        参数:
+            resp_data: 原始响应数据
+            resp_url: 响应URL
+            **kwargs: 其他解析参数
+        """
         super().__init__(resp_data, resp_url, **kwargs)
 
     @override
     def _parse_response(self, resp_data: dict[str, Any], **kwargs: Any) -> None:
+        """
+        解析SauceNAO响应数据
+        
+        参数:
+            resp_data: 原始响应数据
+            **kwargs: 其他解析参数
+        """
         self.status_code: int = resp_data["status_code"]
         header = resp_data["header"]
         results = resp_data.get("results", [])
@@ -120,6 +201,12 @@ class SauceNAOResponse(BaseSearchResponse[SauceNAOItem]):
         self.url: str = f"https://saucenao.com/search.php?url=https://saucenao.com{header.get('query_image_display')}"
 
     def show_result(self) -> str:
+        """
+        生成可读的搜索结果文本
+        
+        返回:
+            str: 格式化的搜索结果文本
+        """
         if self.raw:
             result = ["-" * 50]
             result.append(f"相似度: {self.raw[0].similarity}%")

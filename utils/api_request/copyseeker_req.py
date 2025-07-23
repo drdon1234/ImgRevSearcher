@@ -15,12 +15,37 @@ COPYSEEKER_CONSTANTS = {
 
 
 class Copyseeker(BaseSearchReq[CopyseekerResponse]):
+    """
+    Copyseeker搜索请求类
+    
+    用于与Copyseeker反向图像搜索服务交互，实现多步骤搜索流程
+    """
+    
     def __init__(self, base_url: str = "https://copyseeker.net", **request_kwargs: Any):
+        """
+        初始化Copyseeker搜索请求
+        
+        参数:
+            base_url: Copyseeker API的基础URL
+            **request_kwargs: 其他请求参数
+        """
         super().__init__(base_url, **request_kwargs)
 
     async def _get_discovery_id(
         self, url: Optional[str] = None, file: Union[str, bytes, Path, None] = None
     ) -> Optional[str]:
+        """
+        获取搜索发现ID
+        
+        Copyseeker搜索的第一步，设置Cookie并上传图像，获取发现ID
+        
+        参数:
+            url: 图像URL
+            file: 本地文件内容
+            
+        返回:
+            Optional[str]: 发现ID，如果失败则返回None
+        """
         headers = {"content-type": "text/plain;charset=UTF-8", "next-action": COPYSEEKER_CONSTANTS["SET_COOKIE_TOKEN"]}
         data = "[]"
         discovery_id = None
@@ -64,6 +89,20 @@ class Copyseeker(BaseSearchReq[CopyseekerResponse]):
         file: Union[str, bytes, Path, None] = None,
         **kwargs: Any,
     ) -> CopyseekerResponse:
+        """
+        执行Copyseeker图像搜索
+        
+        参数:
+            url: 图像URL
+            file: 本地文件内容
+            **kwargs: 其他搜索参数
+            
+        返回:
+            CopyseekerResponse: 搜索响应对象
+            
+        异常:
+            ValueError: 当未提供url或file参数时抛出
+        """
         if not url and not file:
             raise ValueError("Either 'url' or 'file' must be provided")
         discovery_id = await self._get_discovery_id(url, file)

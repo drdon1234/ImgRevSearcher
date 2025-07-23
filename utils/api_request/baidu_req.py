@@ -10,12 +10,33 @@ from .base_req import BaseSearchReq
 
 
 class BaiDu(BaseSearchReq[BaiDuResponse]):
+    """
+    百度识图搜索请求类
+    
+    用于与百度识图服务交互，获取相似图片和相同图片的搜索结果
+    """
+    
     def __init__(self, **request_kwargs: Any):
+        """
+        初始化百度识图搜索请求
+        
+        参数:
+            **request_kwargs: 其他请求参数
+        """
         base_url = "https://graph.baidu.com"
         super().__init__(base_url, **request_kwargs)
 
     @staticmethod
     def _extract_card_data(data: PyQuery) -> list[dict[str, Any]]:
+        """
+        从页面中提取卡片数据
+        
+        参数:
+            data: PyQuery对象，包含页面HTML
+            
+        返回:
+            list[dict[str, Any]]: 提取的卡片数据列表
+        """
         for script in data("script").items():
             script_text = script.text()
             if script_text and "window.cardData" in script_text:
@@ -31,6 +52,20 @@ class BaiDu(BaseSearchReq[BaiDuResponse]):
         file: Union[str, bytes, Path, None] = None,
         **kwargs: Any,
     ) -> BaiDuResponse:
+        """
+        执行百度识图搜索
+        
+        参数:
+            url: 图像URL
+            file: 本地文件内容
+            **kwargs: 其他搜索参数
+            
+        返回:
+            BaiDuResponse: 搜索响应对象
+            
+        异常:
+            ValueError: 当未提供url或file参数时抛出
+        """
         data = {"from": "pc"}
         if url:
             files = {"image": await self.download(url)}

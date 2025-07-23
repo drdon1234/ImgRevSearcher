@@ -5,22 +5,63 @@ from .base_parser import BaseResParser, BaseSearchResponse
 
 
 class BaiDuItem(BaseResParser):
+    """
+    百度识图搜索结果项解析器
+    
+    解析单个搜索结果，提取标题、URL和缩略图等信息
+    """
+    
     def __init__(self, data: dict[str, Any], **kwargs: Any) -> None:
+        """
+        初始化百度识图结果项解析器
+        
+        参数:
+            data: 原始结果数据
+            **kwargs: 其他解析参数
+        """
         super().__init__(data, **kwargs)
 
     @override
     def _parse_data(self, data: dict[str, Any], **kwargs: Any) -> None:
+        """
+        解析百度识图结果数据
+        
+        参数:
+            data: 原始结果数据
+            **kwargs: 其他解析参数
+        """
         self.title: str = deep_get(data, "title[0]") or ""
         self.thumbnail: str = data.get("image_src") or data.get("thumbUrl") or ""
         self.url: str = data.get("url") or data.get("fromUrl") or ""
 
 
 class BaiDuResponse(BaseSearchResponse[BaiDuItem]):
+    """
+    百度识图搜索响应解析器
+    
+    解析完整的百度识图API响应，包含相似图片和相同图片的搜索结果
+    """
+    
     def __init__(self, resp_data: dict[str, Any], resp_url: str, **kwargs: Any):
+        """
+        初始化百度识图响应解析器
+        
+        参数:
+            resp_data: 原始响应数据
+            resp_url: 响应URL
+            **kwargs: 其他解析参数
+        """
         super().__init__(resp_data, resp_url, **kwargs)
 
     @override
     def _parse_response(self, resp_data: dict[str, Any], **kwargs: Any) -> None:
+        """
+        解析百度识图响应数据
+        
+        参数:
+            resp_data: 原始响应数据
+            **kwargs: 其他解析参数
+        """
         self.raw: list[BaiDuItem] = []
         self.exact_matches: list[BaiDuItem] = []
         if same_data := resp_data.get("same"):
@@ -30,6 +71,12 @@ class BaiDuResponse(BaseSearchResponse[BaiDuItem]):
             self.raw.extend([BaiDuItem(i) for i in data_list])
             
     def show_result(self) -> str:
+        """
+        生成可读的搜索结果文本
+        
+        返回:
+            str: 格式化的搜索结果文本，包含相似结果和最佳匹配
+        """
         lines = ["-" * 50, "相关结果:"]
         if self.raw:
             for idx, item in enumerate(self.raw, 1):

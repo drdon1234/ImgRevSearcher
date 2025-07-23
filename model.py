@@ -8,24 +8,47 @@ import io
 
 try:
     from PIL import Image, ImageDraw, ImageFont
-
     PIL_AVAILABLE = True
 except ImportError:
     PIL_AVAILABLE = False
 
 
 class BaseSearchModel:
+    """
+    图像反向搜索基础模型类
+    
+    提供多种搜索引擎的统一接口，支持本地文件和URL搜索，
+    可以输出文本结果或生成可视化图像结果
+    """
+    
     def __init__(self, proxies: Optional[str] = PROXIES, cookies: Optional[str] = None,
                  timeout: int = 60, **kwargs: Any):
+        """
+        初始化搜索模型
+        
+        参数:
+            proxies: 代理服务器配置
+            cookies: Cookie配置
+            timeout: 请求超时时间(秒)
+            **kwargs: 其他配置参数
+        """
         self.proxies = proxies
         self.cookies = cookies
         self.timeout = timeout
         self.config = kwargs
     
     def _prepare_engine_params(self, api: str, search_params: dict) -> dict:
-        """根据API类型准备引擎参数"""
-        engine_params = {}
+        """
+        根据API类型准备引擎参数
         
+        参数:
+            api: 搜索引擎API名称
+            search_params: 搜索参数字典
+            
+        返回:
+            dict: 处理后的引擎参数字典
+        """
+        engine_params = {}
         if api == "anime_trace":
             engine_params = {
                 "is_multi": search_params.pop("is_multi", None),
@@ -59,11 +82,25 @@ class BaseSearchModel:
                 "q": search_params.get("q", None),
                 "max_results": search_params.pop("max_results", 50)
             }
-        
         return engine_params
 
     async def search(self, api: str, file: FileContent = None,
                      url: Optional[str] = None, **kwargs: Any) -> str:
+        """
+        执行图像反向搜索
+        
+        参数:
+            api: 搜索引擎API名称
+            file: 本地文件内容
+            url: 图像URL
+            **kwargs: 其他搜索参数
+            
+        返回:
+            str: 搜索结果文本
+            
+        异常:
+            ValueError: 当API不支持或参数错误时抛出
+        """
         if api not in ENGINE_MAP:
             available = ", ".join(ENGINE_MAP.keys())
             raise ValueError(f"不支持的引擎: {api}，支持的引擎: {available}")
@@ -75,22 +112,17 @@ class BaseSearchModel:
             engine_class = ENGINE_MAP[api]
             default_params = DEFAULT_PARAMS.get(api, {})
             search_params = {**default_params, **kwargs}
-            
             network_kwargs = {}
             if self.proxies:
                 network_kwargs["proxies"] = self.proxies
-            
             effective_cookies = self.cookies or DEFAULT_COOKIES.get(api)
             if effective_cookies:
                 network_kwargs["cookies"] = effective_cookies
-                
             if self.timeout:
                 network_kwargs["timeout"] = self.timeout
-                
             async with Network(**network_kwargs) as client:
                 engine_params = self._prepare_engine_params(api, search_params)
                 engine_instance = engine_class(client=client, **engine_params)
-                
                 if api == "anime_trace" and search_params.get("base64"):
                     response = await engine_instance.search(
                         base64=search_params.pop("base64"), 
@@ -99,13 +131,24 @@ class BaseSearchModel:
                     )
                 else:
                     response = await engine_instance.search(file=file, url=url, **search_params)
-                    
                 return response.show_result()
         except Exception as e:
             return self._format_error(api, str(e))
 
     async def search_and_print(self, api: str, file: FileContent = None,
                                url: Optional[str] = None, **kwargs: Any) -> None:
+        """
+        执行搜索并打印结果到控制台
+        
+        参数:
+            api: 搜索引擎API名称
+            file: 本地文件内容
+            url: 图像URL
+            **kwargs: 其他搜索参数
+            
+        返回:
+            None
+        """
         try:
             result = await self.search(api=api, file=file, url=url, **kwargs)
             print(result)
@@ -114,6 +157,22 @@ class BaseSearchModel:
 
     async def search_and_draw(self, api: str, file: FileContent = None,
                               url: Optional[str] = None, is_auto_save: bool = False, **kwargs: Any) -> Image.Image:
+        """
+        执行搜索并将结果渲染为图像
+        
+        参数:
+            api: 搜索引擎API名称
+            file: 本地文件内容
+            url: 图像URL
+            is_auto_save: 是否自动保存结果图像
+            **kwargs: 其他搜索参数
+            
+        返回:
+            Image.Image: 渲染后的结果图像
+            
+        异常:
+            ImportError: 当未安装Pillow库时抛出
+        """
         if not PIL_AVAILABLE:
             raise ImportError("需要安装Pillow库以使用图像绘制功能，请运行: pip install pillow")
         try:
@@ -196,7 +255,6 @@ class BaseSearchModel:
                 else:
                     draw.text((margin, y_position), line, font=font, fill='black')
                 y_position += line_height
-                
             if is_auto_save:
                 save_dir = Path("search_results")
                 save_dir.mkdir(exist_ok=True)
@@ -217,11 +275,9 @@ class BaseSearchModel:
             except IOError:
                 font = ImageFont.load_default()
                 title_font = ImageFont.load_default()
-                
             margin = 20
             draw.text((margin, margin), f"{api.upper()} 搜索失败", font=title_font, fill='white')
             draw.text((margin, 80), f"错误信息: {str(e)}", font=font, fill='black')
-            
             if is_auto_save:
                 save_dir = Path("search_results")
                 save_dir.mkdir(exist_ok=True)
@@ -232,6 +288,16 @@ class BaseSearchModel:
             return img
 
     def _format_error(self, api: str, error_msg: str) -> str:
+        """
+        格式化错误信息
+        
+        参数:
+            api: 搜索引擎API名称
+            error_msg: 原始错误信息
+            
+        返回:
+            str: 格式化后的错误信息
+        """
         friendly_msg = "未搜索到相关信息" if "list index out of range" in error_msg.lower() else error_msg
         return f"""{'=' * 50}
 {api.upper()} 搜索失败
@@ -241,4 +307,10 @@ class BaseSearchModel:
 
     @classmethod
     def get_supported_engines(cls) -> list[str]:
+        """
+        获取所有支持的搜索引擎列表
+        
+        返回:
+            list[str]: 支持的搜索引擎名称列表
+        """
         return list(ENGINE_MAP.keys())

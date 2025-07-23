@@ -13,6 +13,13 @@ DEFAULT_HEADERS = {
 
 
 class Network:
+    """
+    网络请求客户端类
+    
+    封装httpx.AsyncClient，提供异步HTTP请求功能，
+    支持代理、自定义头部、Cookie等设置
+    """
+    
     def __init__(
         self,
         internal: bool = False,
@@ -23,6 +30,18 @@ class Network:
         verify_ssl: bool = True,
         http2: bool = False,
     ):
+        """
+        初始化网络客户端
+        
+        参数:
+            internal: 是否为内部客户端
+            proxies: 代理服务器地址
+            headers: 自定义HTTP头部
+            cookies: Cookie字符串
+            timeout: 请求超时时间(秒)
+            verify_ssl: 是否验证SSL证书
+            http2: 是否启用HTTP/2
+        """
         self.internal: bool = internal
         headers = {**DEFAULT_HEADERS, **(headers or {})}
         self.cookies: dict[str, str] = {}
@@ -42,12 +61,27 @@ class Network:
         )
 
     def start(self) -> AsyncClient:
+        """
+        获取客户端实例
+        
+        返回:
+            AsyncClient: HTTP客户端实例
+        """
         return self.client
 
     async def close(self) -> None:
+        """
+        关闭客户端连接
+        """
         await self.client.aclose()
 
     async def __aenter__(self) -> AsyncClient:
+        """
+        异步上下文管理器入口
+        
+        返回:
+            AsyncClient: HTTP客户端实例
+        """
         return self.client
 
     async def __aexit__(
@@ -56,10 +90,24 @@ class Network:
         exc_val: Optional[BaseException] = None,
         exc_tb: Optional[TracebackType] = None,
     ) -> None:
+        """
+        异步上下文管理器退出
+        
+        参数:
+            exc_type: 异常类型
+            exc_val: 异常值
+            exc_tb: 异常回溯
+        """
         await self.client.aclose()
 
 
 class ClientManager:
+    """
+    客户端管理器类
+    
+    管理HTTP客户端的生命周期，支持自定义客户端或创建新客户端
+    """
+    
     def __init__(
         self,
         client: Optional[AsyncClient] = None,
@@ -70,6 +118,18 @@ class ClientManager:
         verify_ssl: bool = True,
         http2: bool = False,
     ):
+        """
+        初始化客户端管理器
+        
+        参数:
+            client: 现有的HTTP客户端实例
+            proxies: 代理服务器地址
+            headers: 自定义HTTP头部
+            cookies: Cookie字符串
+            timeout: 请求超时时间(秒)
+            verify_ssl: 是否验证SSL证书
+            http2: 是否启用HTTP/2
+        """
         self.client: Union[Network, AsyncClient] = client or Network(
             internal=True,
             proxies=proxies,
@@ -81,6 +141,12 @@ class ClientManager:
         )
 
     async def __aenter__(self) -> AsyncClient:
+        """
+        异步上下文管理器入口
+        
+        返回:
+            AsyncClient: HTTP客户端实例
+        """
         return self.client.start() if isinstance(self.client, Network) else self.client
 
     async def __aexit__(
@@ -89,18 +155,37 @@ class ClientManager:
         exc_val: Optional[BaseException] = None,
         exc_tb: Optional[TracebackType] = None,
     ) -> None:
+        """
+        异步上下文管理器退出
+        
+        参数:
+            exc_type: 异常类型
+            exc_val: 异常值
+            exc_tb: 异常回溯
+        """
         if isinstance(self.client, Network) and self.client.internal:
             await self.client.close()
 
 
 @dataclass
 class RESP:
+    """
+    HTTP响应数据类
+    
+    简化的HTTP响应表示，包含文本内容、URL和状态码
+    """
     text: str
     url: str
     status_code: int
 
 
 class HandOver:
+    """
+    HTTP请求转发类
+    
+    提供简化的HTTP请求接口，支持GET、POST和下载操作
+    """
+    
     def __init__(
         self,
         client: Optional[AsyncClient] = None,
@@ -111,6 +196,18 @@ class HandOver:
         verify_ssl: bool = True,
         http2: bool = False,
     ):
+        """
+        初始化HTTP请求转发器
+        
+        参数:
+            client: 现有的HTTP客户端实例
+            proxies: 代理服务器地址
+            headers: 自定义HTTP头部
+            cookies: Cookie字符串
+            timeout: 请求超时时间(秒)
+            verify_ssl: 是否验证SSL证书
+            http2: 是否启用HTTP/2
+        """
         self.client: Optional[AsyncClient] = client
         self.proxies: Optional[str] = proxies
         self.headers: Optional[dict[str, str]] = headers
@@ -126,6 +223,18 @@ class HandOver:
         headers: Optional[dict[str, str]] = None,
         **kwargs: Any,
     ) -> RESP:
+        """
+        执行GET请求
+        
+        参数:
+            url: 请求URL
+            params: URL查询参数
+            headers: 自定义HTTP头部
+            **kwargs: 其他请求参数
+            
+        返回:
+            RESP: 简化的HTTP响应对象
+        """
         async with ClientManager(
             self.client,
             self.proxies,
@@ -148,6 +257,21 @@ class HandOver:
         json: Optional[dict[str, Any]] = None,
         **kwargs: Any,
     ) -> RESP:
+        """
+        执行POST请求
+        
+        参数:
+            url: 请求URL
+            params: URL查询参数
+            headers: 自定义HTTP头部
+            data: 表单数据
+            files: 文件数据
+            json: JSON数据
+            **kwargs: 其他请求参数
+            
+        返回:
+            RESP: 简化的HTTP响应对象
+        """
         async with ClientManager(
             self.client,
             self.proxies,
@@ -169,6 +293,16 @@ class HandOver:
             return RESP(resp.text, str(resp.url), resp.status_code)
 
     async def download(self, url: str, headers: Optional[dict[str, str]] = None) -> bytes:
+        """
+        下载文件
+        
+        参数:
+            url: 下载URL
+            headers: 自定义HTTP头部
+            
+        返回:
+            bytes: 下载的文件内容
+        """
         async with ClientManager(
             self.client,
             self.proxies,

@@ -18,6 +18,12 @@ SEARCH_TYPE_UDM = {
 
 
 class GoogleLens(BaseSearchReq[Union[GoogleLensResponse, GoogleLensExactMatchesResponse]]):
+    """
+    Google Lens搜索请求类
+    
+    提供基于图像的搜索功能，支持多种搜索类型和过滤选项
+    """
+    
     def __init__(
         self,
         base_url: str = "https://lens.google.com",
@@ -29,6 +35,22 @@ class GoogleLens(BaseSearchReq[Union[GoogleLensResponse, GoogleLensExactMatchesR
         max_results: int = 50,
         **request_kwargs: Any,
     ):
+        """
+        初始化Google Lens搜索请求
+        
+        参数:
+            base_url: Google Lens API基础URL
+            search_url: Google搜索基础URL
+            search_type: 搜索类型，可选值为"all"、"products"、"visual_matches"或"exact_matches"
+            q: 搜索查询词
+            hl: 界面语言代码
+            country: 国家/地区代码
+            max_results: 最大结果数量
+            **request_kwargs: 其他请求参数
+            
+        异常:
+            ValueError: 当搜索类型无效、参数组合不兼容或max_results不是正整数时抛出
+        """
         super().__init__(base_url, **request_kwargs)
         if search_type not in VALID_SEARCH_TYPES:
             raise ValueError(f"无效的search_type: {search_type}。必须是以下之一: {', '.join(VALID_SEARCH_TYPES)}")
@@ -48,6 +70,20 @@ class GoogleLens(BaseSearchReq[Union[GoogleLensResponse, GoogleLensExactMatchesR
         file: FileContent = None,
         q: Optional[str] = None,
     ) -> RESP:
+        """
+        执行图像搜索请求
+        
+        参数:
+            url: 图像URL
+            file: 本地文件内容
+            q: 搜索查询词
+            
+        返回:
+            RESP: HTTP响应对象
+            
+        异常:
+            ValueError: 当未提供url或file参数时抛出
+        """
         params = {"hl": self.hl_param}
         if q and self.search_type != "exact_matches":
             params["q"] = q
@@ -90,6 +126,18 @@ class GoogleLens(BaseSearchReq[Union[GoogleLensResponse, GoogleLensExactMatchesR
         q: Optional[str] = None,
         **kwargs: Any,
     ) -> Union[GoogleLensResponse, GoogleLensExactMatchesResponse]:
+        """
+        执行Google Lens搜索
+        
+        参数:
+            url: 图像URL
+            file: 本地文件内容
+            q: 搜索查询词，对于exact_matches类型会被忽略
+            **kwargs: 其他搜索参数
+            
+        返回:
+            Union[GoogleLensResponse, GoogleLensExactMatchesResponse]: 根据搜索类型返回相应的响应对象
+        """
         if q is not None and self.search_type == "exact_matches":
             q = None
         resp = await self._perform_image_search(url, file, q)

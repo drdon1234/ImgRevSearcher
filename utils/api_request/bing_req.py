@@ -12,11 +12,35 @@ from .base_req import BaseSearchReq
 
 
 class Bing(BaseSearchReq[BingResponse]):
+    """
+    Bing图像搜索请求类
+    
+    用于与Bing图像搜索服务交互，获取相似图片和视觉匹配等结果
+    """
+    
     def __init__(self, **request_kwargs: Any):
+        """
+        初始化Bing图像搜索请求
+        
+        参数:
+            **request_kwargs: 其他请求参数
+        """
         base_url = "https://www.bing.com"
         super().__init__(base_url, **request_kwargs)
 
     async def _upload_image(self, file: Union[str, bytes, Path]) -> tuple[str, str]:
+        """
+        上传图像到Bing服务器
+        
+        参数:
+            file: 本地文件内容
+            
+        返回:
+            tuple[str, str]: 包含BCID和响应URL的元组
+            
+        异常:
+            ValueError: 当无法从响应中提取BCID时抛出
+        """
         endpoint = "images/search?view=detailv2&iss=sbiupload"
         image_base64 = b64encode(read_file(file)).decode("utf-8")
         files = {
@@ -29,6 +53,16 @@ class Bing(BaseSearchReq[BingResponse]):
         raise ValueError("BCID not found on page.")
 
     async def _get_insights(self, bcid: Optional[str] = None, image_url: Optional[str] = None) -> dict[str, Any]:
+        """
+        获取图像的洞察信息
+        
+        参数:
+            bcid: 图像的BCID标识符
+            image_url: 图像URL
+            
+        返回:
+            dict[str, Any]: 包含图像洞察信息的JSON响应
+        """
         endpoint = "images/api/custom/knowledge"
         params: dict[str, Any] = {
             "rshighlight": "true",
@@ -74,6 +108,20 @@ class Bing(BaseSearchReq[BingResponse]):
         file: Union[str, bytes, Path, None] = None,
         **kwargs: Any,
     ) -> BingResponse:
+        """
+        执行Bing图像搜索
+        
+        参数:
+            url: 图像URL
+            file: 本地文件内容
+            **kwargs: 其他搜索参数
+            
+        返回:
+            BingResponse: 搜索响应对象
+            
+        异常:
+            ValueError: 当未提供url或file参数时抛出
+        """
         if url:
             resp_url = (
                 f"{self.base_url}/images/search?"
