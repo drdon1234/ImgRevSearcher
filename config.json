@@ -21,7 +21,7 @@
       "q": null,
       "hl": "en",
       "country": "HK",
-      "max_results": 300
+      "max_results": 50
     },
     "saucenao": {
       "api_key": "a4ab3f81009b003528f7e31aed187fa32a063f58",
