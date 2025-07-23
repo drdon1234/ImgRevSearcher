@@ -1,3 +1,4 @@
 httpx
+pillow
 pyquery
 typing_extensions
