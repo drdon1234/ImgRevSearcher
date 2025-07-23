@@ -109,7 +109,7 @@ class BaseSearchModel:
             margin = 20
             lines = result.split('\n')
             base_dir = Path(__file__).parent
-            font_path = str(base_dir / "resource/font/NotoSans-Medium.ttf")
+            font_path = str(base_dir / "resource/font/arialuni.ttf")
             try:
                 font = ImageFont.truetype(font_path, 18)
                 title_font = ImageFont.truetype(font_path, 24)

@@ -67,7 +67,7 @@ DEFAULT_CONFIG = {
         "bing": None,
         "copyseeker": None,
         "ehentai": None, # "ipb_member_id=; ipb_pass_hash=; igneous="
-        "google_lens": "AEC=AVh_V2j1uy574ZdQHejl0WJ64XptEwJrMKAFHVh9Z6jWX2NC8USYut_F-Q; NID=525=CAWgxic9AizZ0Ss6iBoG8HF00e5E6qRk1e_t5cUcEGiDEFQgavZH2pIFg_TayKhhtzVYqAS_OAYQYztukxUTEkXYVY1IEUm8j5mDMP1deKuJ21D1Sx45a8vyRbfNx81SJ7AtuwPFGiELykCR1j89hlJzAIitP2A9VwXz0Gh3XKNY9E3eJTmaLUbtdfaQaaD2o-HbjqznBA07YoPdwEGL4uQpqAxFHA; DV=02HpwPZoP-Me0J-HU_sc0eeCc8Yvgxk",
+        "google_lens": "AEC=AVh_V2hkwlmGyy-4B-rPZXcc6b0BRLbZMHRB3K3RQudJOfMNniBKHrFvhus; NID=525=fPc2vhi78mV9p7_Zy9EYX2w6POynvO6dA_gh6WgWeRunOgwCshviIrexMQnGq3oi58-t4U5LHLB5sQWN-Er6stXkbKz-UHtzX7MsGcnzjyaeN5COmfji5rfqzb6Omm0g4C0u1ztZgm7h--stbnM8x6zzYrWBMgiVs_2STsIZYd4h5xwZd-Eb97JdQ53QIxsm8bj91sKgjXVIJYuWzGxQ7OYvG0K5jl3ikXeNh3lvl17KsowpkMljgg2y03SsbZPlous; DV=owmVHxhdQYEX0J-HU_sc0eeyR4h5gxk",
         "saucenao": None,
         "tineye": None,
     }
