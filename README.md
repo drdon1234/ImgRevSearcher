@@ -203,16 +203,17 @@ EHentaiResponse
 
 ### 参数
 
-| 参数 | 类型 | 说明 |
-|------|------|------|
-| `url` | `Optional[str]` | 要搜索的图片URL |
-| `file` | `Union[str, bytes, Path, None]` | 本地图片文件 |
-| `base_url` | `str` | Google Lens搜索的基础URL |
-| `search_url` | `str` | Google搜索结果的基础URL |
-| `search_type` | `Literal` | 搜索类型（默认：exact_matches）|
-| `q` | `Optional[str]` | 搜索查询参数（仅在search_type不为'exact_matches'时适用）|
-| `hl` | `str` | 语言参数（默认：en）|
-| `country` | `str` | 区域设置参数（默认：HK）|
+| 参数 | 类型 | 说明                                        |
+|------|------|-------------------------------------------|
+| `url` | `Optional[str]` | 要搜索的图片URL                                 |
+| `file` | `Union[str, bytes, Path, None]` | 本地图片文件                                    |
+| `base_url` | `str` | Google Lens搜索的基础URL                       |
+| `search_url` | `str` | Google搜索结果的基础URL                          |
+| `search_type` | `Literal` | 搜索类型（默认：exact_matches）                    |
+| `q` | `Optional[str]` | 搜索查询参数（仅在search_type不为'exact_matches'时适用） |
+| `hl` | `str` | 语言参数（默认：en）                               |
+| `country` | `str` | 区域设置参数（默认：HK）                             |
+| `max_results` | `int` | 最大搜索结果数（默认：50）                            |
 
 #### 搜索类型选项
 - `all` - 全部搜索
