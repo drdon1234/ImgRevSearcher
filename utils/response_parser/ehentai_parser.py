@@ -62,7 +62,7 @@ class EHentaiResponse(BaseSearchResponse[EHentaiItem]):
             gl1t_items = data.find(".itg").children(".gl1t").items()
             self.raw = [EHentaiItem(i) for i in gl1t_items]
             
-    def show_result(self, translations_file: str = "resource/ehviewer_translations.json") -> str:
+    def show_result(self, translations_file: str = "resource/translations/ehviewer_translations.json") -> str:
         try:
             base_dir = Path(__file__).parent.parent.parent
             abs_translations_file = base_dir / translations_file
