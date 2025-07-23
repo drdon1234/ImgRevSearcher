@@ -1,7 +1,15 @@
 from pathlib import Path
 from typing import Any, Optional, Union
+import datetime
 from utils import Network
 from config_manager import PROXIES, ENGINE_MAP, DEFAULT_PARAMS, DEFAULT_COOKIES
+
+try:
+    from PIL import Image, ImageDraw, ImageFont
+
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
 
 
 class BaseSearchModel:
@@ -13,7 +21,7 @@ class BaseSearchModel:
         self.config = kwargs
 
     async def search(self, api: str, file: Union[str, bytes, Path, None] = None,
-                    url: Optional[str] = None, **kwargs: Any) -> str:
+                     url: Optional[str] = None, **kwargs: Any) -> str:
         if api not in ENGINE_MAP:
             available = ", ".join(ENGINE_MAP.keys())
             raise ValueError(f"不支持的引擎: {api}，支持的引擎: {available}")
@@ -81,14 +89,75 @@ class BaseSearchModel:
                 return response.show_result()
         except Exception as e:
             return self._format_error(api, str(e))
-            
+
     async def search_and_print(self, api: str, file: Union[str, bytes, Path, None] = None,
-                              url: Optional[str] = None, **kwargs: Any) -> None:
+                               url: Optional[str] = None, **kwargs: Any) -> None:
         try:
             result = await self.search(api=api, file=file, url=url, **kwargs)
             print(result)
         except Exception as e:
             print(f"❌ {api} 搜索失败: {e}")
+
+    async def search_and_draw(self, api: str, file: Union[str, bytes, Path, None] = None,
+                              url: Optional[str] = None, is_auto_save: bool = False, **kwargs: Any) -> Image.Image:
+        if not PIL_AVAILABLE:
+            raise ImportError("需要安装Pillow库以使用图像绘制功能，请运行: pip install pillow")
+        try:
+            result = await self.search(api=api, file=file, url=url, **kwargs)
+            width = 800
+            margin = 20
+            lines = result.split('\n')
+            base_dir = Path(__file__).parent
+            font_path = str(base_dir / "resource/font/NotoSans_Condensed-Medium.ttf")
+            try:
+                font = ImageFont.truetype(font_path, 18)
+                title_font = ImageFont.truetype(font_path, 24)
+            except IOError:
+                font = ImageFont.load_default()
+                title_font = ImageFont.load_default()
+            line_height = 25
+            total_height = margin * 2 + line_height * len(lines)
+            img = Image.new('RGB', (width, total_height), color='white')
+            draw = ImageDraw.Draw(img)
+            draw.rectangle([(0, 0), (width, 60)], fill='#4a6ea9')
+            title_text = f"{api.upper()} 搜索结果"
+            draw.text((margin, margin), title_text, font=title_font, fill='white')
+            y_position = 60 + margin
+            for line in lines:
+                if line.startswith('='):
+                    draw.line([(margin, y_position), (width - margin, y_position)], fill='#cccccc', width=1)
+                else:
+                    draw.text((margin, y_position), line, font=font, fill='black')
+                y_position += line_height
+            if is_auto_save:
+                save_dir = Path("search_results")
+                save_dir.mkdir(exist_ok=True)
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                file_name = f"{api}_{timestamp}.jpeg"
+                save_path = save_dir / file_name
+                img.save(save_path, "JPEG", quality=85)
+            return img
+        except Exception as e:
+            width, height = 600, 200
+            img = Image.new('RGB', (width, height), color='white')
+            draw = ImageDraw.Draw(img)
+            draw.rectangle([(0, 0), (width, 60)], fill='#e74c3c')
+            try:
+                font = ImageFont.truetype(font_path, 18)
+                title_font = ImageFont.truetype(font_path, 24)
+            except IOError:
+                font = ImageFont.load_default()
+                title_font = ImageFont.load_default()
+            draw.text((margin, margin), f"{api.upper()} 搜索失败", font=title_font, fill='white')
+            draw.text((margin, 80), f"错误信息: {str(e)}", font=font, fill='black')
+            if is_auto_save:
+                save_dir = Path("search_results")
+                save_dir.mkdir(exist_ok=True)
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                file_name = f"{api}_error_{timestamp}.jpeg"
+                save_path = save_dir / file_name
+                img.save(save_path, "JPEG", quality=85)
+            return img
 
     def _format_error(self, api: str, error_msg: str) -> str:
         if "list index out of range" in error_msg.lower():
