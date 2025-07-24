@@ -1,16 +1,11 @@
+import datetime
+import io
 from pathlib import Path
 from typing import Any, Optional, Union
-import datetime
+from PIL import Image, ImageDraw, ImageFont
+from config_manager import DEFAULT_COOKIES, DEFAULT_PARAMS, ENGINE_MAP, PROXIES
 from utils import Network
-from config_manager import PROXIES, ENGINE_MAP, DEFAULT_PARAMS, DEFAULT_COOKIES
 from utils.types import FileContent
-import io
-
-try:
-    from PIL import Image, ImageDraw, ImageFont
-    PIL_AVAILABLE = True
-except ImportError:
-    PIL_AVAILABLE = False
 
 
 class BaseSearchModel:
@@ -18,7 +13,7 @@ class BaseSearchModel:
     图像反向搜索基础模型类
     
     提供多种搜索引擎的统一接口，支持本地文件和URL搜索，
-    可以输出文本结果或生成可视化图像结果
+    可以输出文本结果或生成可视化图像结果，支持GIF格式自动转换
     """
     
     def __init__(self, proxies: Optional[str] = PROXIES, cookies: Optional[str] = None,
@@ -49,6 +44,7 @@ class BaseSearchModel:
             dict: 处理后的引擎参数字典
         """
         engine_params = {}
+        
         if api == "anime_trace":
             engine_params = {
                 "is_multi": search_params.pop("is_multi", None),
@@ -82,7 +78,45 @@ class BaseSearchModel:
                 "q": search_params.get("q", None),
                 "max_results": search_params.pop("max_results", 50)
             }
+        
         return engine_params
+
+    def _is_gif(self, file: FileContent) -> bool:
+        """
+        检查文件是否为GIF格式
+        
+        参数:
+            file: 待检查的文件内容
+            
+        返回:
+            bool: 如果是GIF格式返回True，否则返回False
+        """
+        if isinstance(file, (str, Path)):
+            return str(file).lower().endswith('.gif')
+        elif isinstance(file, bytes):
+            return file.startswith((b'GIF87a', b'GIF89a'))
+        return False
+
+    def _convert_gif_to_jpeg(self, file: FileContent) -> bytes:
+        """
+        将GIF图像转换为JPEG格式
+        
+        参数:
+            file: GIF格式的文件内容
+            
+        返回:
+            bytes: 转换后的JPEG格式图像数据
+        """
+        if isinstance(file, bytes):
+            img_data = file
+        else:
+            with open(file, 'rb') as f:
+                img_data = f.read()
+        img = Image.open(io.BytesIO(img_data))
+        img.seek(0)
+        jpeg_io = io.BytesIO()
+        img.convert('RGB').save(jpeg_io, 'JPEG', quality=85)
+        return jpeg_io.getvalue()
 
     async def search(self, api: str, file: FileContent = None,
                      url: Optional[str] = None, **kwargs: Any) -> str:
@@ -108,21 +142,28 @@ class BaseSearchModel:
             raise ValueError("必须提供 file 或 url 参数")
         if file and url:
             raise ValueError("file 和 url 参数不能同时提供")
+        if file and not url and self._is_gif(file):
+            file = self._convert_gif_to_jpeg(file)
         try:
             engine_class = ENGINE_MAP[api]
             default_params = DEFAULT_PARAMS.get(api, {})
             search_params = {**default_params, **kwargs}
+            
             network_kwargs = {}
             if self.proxies:
                 network_kwargs["proxies"] = self.proxies
+            
             effective_cookies = self.cookies or DEFAULT_COOKIES.get(api)
             if effective_cookies:
                 network_kwargs["cookies"] = effective_cookies
+                
             if self.timeout:
                 network_kwargs["timeout"] = self.timeout
+                
             async with Network(**network_kwargs) as client:
                 engine_params = self._prepare_engine_params(api, search_params)
                 engine_instance = engine_class(client=client, **engine_params)
+                
                 if api == "anime_trace" and search_params.get("base64"):
                     response = await engine_instance.search(
                         base64=search_params.pop("base64"), 
@@ -131,6 +172,7 @@ class BaseSearchModel:
                     )
                 else:
                     response = await engine_instance.search(file=file, url=url, **search_params)
+                    
                 return response.show_result()
         except Exception as e:
             return self._format_error(api, str(e))
@@ -169,12 +211,7 @@ class BaseSearchModel:
             
         返回:
             Image.Image: 渲染后的结果图像
-            
-        异常:
-            ImportError: 当未安装Pillow库时抛出
         """
-        if not PIL_AVAILABLE:
-            raise ImportError("需要安装Pillow库以使用图像绘制功能，请运行: pip install pillow")
         try:
             result = await self.search(api=api, file=file, url=url, **kwargs)
             margin = 20
@@ -255,6 +292,7 @@ class BaseSearchModel:
                 else:
                     draw.text((margin, y_position), line, font=font, fill='black')
                 y_position += line_height
+                
             if is_auto_save:
                 save_dir = Path("search_results")
                 save_dir.mkdir(exist_ok=True)
@@ -275,9 +313,11 @@ class BaseSearchModel:
             except IOError:
                 font = ImageFont.load_default()
                 title_font = ImageFont.load_default()
+                
             margin = 20
             draw.text((margin, margin), f"{api.upper()} 搜索失败", font=title_font, fill='white')
             draw.text((margin, 80), f"错误信息: {str(e)}", font=font, fill='black')
+            
             if is_auto_save:
                 save_dir = Path("search_results")
                 save_dir.mkdir(exist_ok=True)
