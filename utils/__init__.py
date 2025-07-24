@@ -8,7 +8,6 @@ __all__ = [
     "Copyseeker",
     "EHentai",
     "GoogleLens",
-    "Iqdb",
     "Network",
     "SauceNAO",
     "Tineye",
