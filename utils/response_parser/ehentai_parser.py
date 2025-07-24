@@ -147,8 +147,7 @@ class EHentaiResponse(BaseSearchResponse[EHentaiItem]):
             tag_line = f"{category}: {'; '.join(tags)}"
             tag_lines.append(tag_line)
         type_cn = translations.get('reclass', {}).get(self.raw[0].type.lower(), self.raw[0].type)
-        lines = ["-" * 50, f"结果 #1", f"链接: {self.raw[0].url}", f"上传时间: {self.raw[0].date}",
+        lines = [f"结果 #1", f"链接: {self.raw[0].url}", f"上传时间: {self.raw[0].date}",
                 f"标题: {self.raw[0].title}", f"类型: {type_cn}", f"页数: {self.raw[0].pages}", "标签:"]
         lines.extend([f"  {tag_line}" for tag_line in tag_lines])
-        lines.append("-" * 50)
         return "\n".join(lines)

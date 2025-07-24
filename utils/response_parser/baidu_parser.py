@@ -77,8 +77,16 @@ class BaiDuResponse(BaseSearchResponse[BaiDuItem]):
         返回:
             str: 格式化的搜索结果文本，包含相似结果和最佳匹配
         """
-        lines = ["-" * 50, "相关结果:"]
+        lines = []
+        if self.exact_matches:
+            lines.extend(["最佳结果:", "-" * 50])
+            for idx, item in enumerate(self.exact_matches, 1):
+                lines.append(f"结果 #{idx}")
+                lines.append(f"标题: {item.title}")
+                lines.append(f"链接: {item.url}")
+                lines.append("-" * 50)
         if self.raw:
+            lines.extend(["相关结果:", "-" * 50])
             for idx, item in enumerate(self.raw, 1):
                 lines.append(f"结果 #{idx}")
                 lines.append(f"链接: {item.url}")
@@ -86,11 +94,5 @@ class BaiDuResponse(BaseSearchResponse[BaiDuItem]):
         else:
             lines.append("无相关结果")
             
-        if self.exact_matches:
-            lines.extend(["最佳结果:"])
-            for idx, item in enumerate(self.exact_matches, 1):
-                lines.append(f"结果 #{idx}")
-                lines.append(f"标题: {item.title}")
-                lines.append(f"链接: {item.url}")
-                lines.append("-" * 50)
+
         return "\n".join(lines)

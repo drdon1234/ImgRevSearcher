@@ -88,7 +88,7 @@ class AnimeTraceResponse(BaseSearchResponse[AnimeTraceItem]):
         返回:
             str: 格式化的搜索结果文本
         """
-        lines = ["-" * 50, f"是否为 AI 生成: {'是' if self.ai else '否'}", "-" * 50]
+        lines = [f"是否为 AI 生成: {'是' if self.ai else '否'}", "-" * 50]
         if self.raw:
             for i, item in enumerate(self.raw, 1):
                 if characters := item.characters:

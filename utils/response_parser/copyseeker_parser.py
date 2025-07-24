@@ -79,7 +79,7 @@ class CopyseekerResponse(BaseSearchResponse[CopyseekerItem]):
         返回:
             str: 格式化的搜索结果文本
         """
-        lines = ["-" * 50]
+        lines = []
         if self.raw:
             lines.append(f"匹配图源：{self.raw[0].url}")
         else:
@@ -87,6 +87,5 @@ class CopyseekerResponse(BaseSearchResponse[CopyseekerItem]):
             
         lines.append("相似图片：")
         for i, url in enumerate(self.similar_image_urls, 1):
-            lines.append(f"  #{i} {url}")
-        lines.append("-" * 50)
+            lines.extend([f"  #{i} {url}", "-" * 50])
         return '\n'.join(lines)

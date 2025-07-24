@@ -2,7 +2,7 @@ import asyncio
 from model import BaseSearchModel
 
 
-test_file = "test_img.jpg"
+test_file = "test_imgs/test_img.jpg"
 
 
 async def test_all_engines():
