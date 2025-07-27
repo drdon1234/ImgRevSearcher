@@ -3,7 +3,7 @@ import io
 from pathlib import Path
 from typing import Any, Optional, Union
 from PIL import Image, ImageDraw, ImageFont
-from config_manager import DEFAULT_COOKIES, DEFAULT_PARAMS, ENGINE_MAP, PROXIES
+from config_manager import DEFAULT_COOKIES, DEFAULT_PARAMS, ENGINE_MAP, PROXIES, get_cookie
 from utils import Network
 from utils.types import FileContent
 
@@ -148,22 +148,22 @@ class BaseSearchModel:
             engine_class = ENGINE_MAP[api]
             default_params = DEFAULT_PARAMS.get(api, {})
             search_params = {**default_params, **kwargs}
-            
             network_kwargs = {}
             if self.proxies:
                 network_kwargs["proxies"] = self.proxies
-            
-            effective_cookies = self.cookies or DEFAULT_COOKIES.get(api)
+            effective_cookies = self.cookies
+            if not effective_cookies:
+                if api == "google_lens":
+                    effective_cookies = get_cookie(api)
+                else:
+                    effective_cookies = DEFAULT_COOKIES.get(api)
             if effective_cookies:
                 network_kwargs["cookies"] = effective_cookies
-                
             if self.timeout:
                 network_kwargs["timeout"] = self.timeout
-                
             async with Network(**network_kwargs) as client:
                 engine_params = self._prepare_engine_params(api, search_params)
                 engine_instance = engine_class(client=client, **engine_params)
-                
                 if api == "anime_trace" and search_params.get("base64"):
                     response = await engine_instance.search(
                         base64=search_params.pop("base64"), 
@@ -172,7 +172,6 @@ class BaseSearchModel:
                     )
                 else:
                     response = await engine_instance.search(file=file, url=url, **search_params)
-                    
                 return response.show_result()
         except Exception as e:
             return self._format_error(api, str(e))

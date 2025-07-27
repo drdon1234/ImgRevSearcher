@@ -27,17 +27,21 @@
 
 ### Google Lens 引擎的 Cookie 强制要求
 
-请按以下步骤获取无痕模式下有效的 Google Cookie：
+> #### 已弃用  
+> 请按以下步骤获取无痕模式下有效的 Google Cookie：
+> 
+> 1. 打开浏览器无痕窗口  
+> 2. 按 `F12` 打开开发者工具，切换到"网络(Network)"标签，过滤"Fetch/XHR"  
+> 3. 访问 [https://image.google.com/](https://image.google.com/)  并上传任意图片进行搜索
+> 4. 找到以 `search?vsrid=` 开头的请求，查看请求头中的 `Cookie` 字段  
+> 5. 复制完整的 Cookie 内容，替换到 `config.json` 中 `default_cookies` 的 `google_lens` 项
+> 
+> **注意：**  
+> - 无痕模式cookie格式一般为 `AEC= ; NID= ; DV=`，有效期限约6个月
+> - 登录状态cookie有效期极短，不建议使用
 
-1. 打开浏览器无痕窗口  
-2. 按 `F12` 打开开发者工具，切换到"网络(Network)"标签，过滤"Fetch/XHR"  
-3. 访问 [https://image.google.com/](https://image.google.com/)  并上传任意图片进行搜索
-4. 找到以 `search?vsrid=` 开头的请求，查看请求头中的 `Cookie` 字段  
-5. 复制完整的 Cookie 内容，替换到 `config.json` 中 `default_cookies` 的 `google_lens` 项
-
-**注意：**  
-- 无痕模式cookie格式一般为 `AEC= ; NID= ; DV=`，有效期限约6个月
-- 登录状态cookie有效期极短，不建议使用
+> #### 已支持自动获取 Google Cookie 并管理更新
+> 将配置文件中的 `cookie_manager` -> `google_lens` -> `auto_fetch` 设置为 `true`
 
 # API 参数说明文档
 

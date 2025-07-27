@@ -1,6 +1,9 @@
 import json
+import time
+from datetime import datetime
 from pathlib import Path
 from utils.api_request import AnimeTrace, BaiDu, Bing, Copyseeker, EHentai, GoogleLens, SauceNAO, Tineye
+from utils.cookie_manager import GoogleImagesCookieExtractor
 
 
 ENGINE_MAP = {
@@ -17,7 +20,7 @@ ENGINE_MAP = {
 CONFIG_FILE = Path(__file__).parent / "config.json"
 
 DEFAULT_CONFIG = {
-    "proxies": "http://127.0.0.1:7897",
+    "proxies": None, # "http://localhost:port"
     "default_params": {
         "anime_trace": {
             "model": "full_game_model_kira",
@@ -67,9 +70,18 @@ DEFAULT_CONFIG = {
         "bing": None,
         "copyseeker": None,
         "ehentai": None, # "ipb_member_id=; ipb_pass_hash=; igneous="
-        "google_lens": "AEC=AVh_V2hkwlmGyy-4B-rPZXcc6b0BRLbZMHRB3K3RQudJOfMNniBKHrFvhus; NID=525=fPc2vhi78mV9p7_Zy9EYX2w6POynvO6dA_gh6WgWeRunOgwCshviIrexMQnGq3oi58-t4U5LHLB5sQWN-Er6stXkbKz-UHtzX7MsGcnzjyaeN5COmfji5rfqzb6Omm0g4C0u1ztZgm7h--stbnM8x6zzYrWBMgiVs_2STsIZYd4h5xwZd-Eb97JdQ53QIxsm8bj91sKgjXVIJYuWzGxQ7OYvG0K5jl3ikXeNh3lvl17KsowpkMljgg2y03SsbZPlous; DV=owmVHxhdQYEX0J-HU_sc0eeyR4h5gxk",
+        "google_lens": None,
         "saucenao": None,
         "tineye": None,
+    },
+    "cookie_manager": {
+        "google_lens": {
+            "auto_fetch": True,
+            "use_remote": False,
+            "remote_server": "http://localhost:4444/wd/hub",
+            "update_interval": 43200,
+            "last_update": ""
+        }
     }
 }
 
@@ -87,10 +99,74 @@ def load_config(config_path: Path = CONFIG_FILE) -> dict:
         return DEFAULT_CONFIG
 
 
-# 加载配置
+def save_config(config_data: dict, config_path: Path = CONFIG_FILE) -> None:
+    """保存配置到文件"""
+    with open(config_path, 'w', encoding='utf-8') as f:
+        json.dump(config_data, f, ensure_ascii=False, indent=2)
+
+
+def update_last_cookie_update_time(engine: str, config_data: dict = None) -> dict:
+    """更新指定引擎的最后cookie更新时间"""
+    if config_data is None:
+        config_data = load_config()
+    if "cookie_manager" in config_data and engine in config_data["cookie_manager"]:
+        config_data["cookie_manager"][engine]["last_update"] = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+        save_config(config_data)
+    return config_data
+
+
+def is_cookie_expired(engine: str, config_data: dict = None) -> bool:
+    """检查指定引擎的cookie是否已过期"""
+    if config_data is None:
+        config_data = load_config()
+    if "cookie_manager" not in config_data or engine not in config_data["cookie_manager"]:
+        return False
+    cookie_config = config_data["cookie_manager"][engine]
+    last_update_str = cookie_config.get("last_update", "")
+    if not last_update_str:
+        return True
+    try:
+        last_update = datetime.strptime(last_update_str, "%Y/%m/%d %H:%M:%S")
+        update_interval = cookie_config.get("update_interval", 3600)
+        current_time = datetime.now()
+        seconds_since_update = (current_time - last_update).total_seconds()
+        return seconds_since_update >= update_interval
+    except ValueError:
+        return True
+
+
+def get_cookie(engine: str) -> str:
+    """获取指定引擎的cookie，如果配置为自动获取则尝试自动更新"""
+    config_data = load_config()
+    cookie = config_data.get("default_cookies", {}).get(engine)
+    if "cookie_manager" in config_data and engine in config_data["cookie_manager"]:
+        cookie_config = config_data["cookie_manager"][engine]
+        if cookie_config.get("auto_fetch", False) and is_cookie_expired(engine, config_data):
+            print(f"正在自动获取 {engine} 的cookie...")
+            if engine == "google_lens":
+                remote_addr = cookie_config.get("remote_server") if cookie_config.get("use_remote", False) else None
+                extractor = GoogleImagesCookieExtractor(
+                    remote_addr=remote_addr,
+                    headless=True,
+                    timeout=30
+                )
+                result = extractor.quick_run()
+                if result and "cookie" in result:
+                    cookie = result["cookie"]
+                    # 更新配置文件中的cookie和最后更新时间
+                    config_data["default_cookies"][engine] = cookie
+                    config_data = update_last_cookie_update_time(engine, config_data)
+                    save_config(config_data)
+                    print(f"{engine} cookie 获取成功！")
+                else:
+                    print(f"{engine} cookie 获取失败，使用现有cookie")
+    return cookie
+
+
 config = load_config()
 PROXIES = config.get("proxies", DEFAULT_CONFIG["proxies"])
 DEFAULT_PARAMS = config.get("default_params", DEFAULT_CONFIG["default_params"])
 DEFAULT_COOKIES = config.get("default_cookies", DEFAULT_CONFIG["default_cookies"])
+COOKIE_MANAGER = config.get("cookie_manager", DEFAULT_CONFIG["cookie_manager"])
 
-__all__ = ["PROXIES", "ENGINE_MAP", "DEFAULT_PARAMS", "DEFAULT_COOKIES"]
+__all__ = ["PROXIES", "ENGINE_MAP", "DEFAULT_PARAMS", "DEFAULT_COOKIES", "COOKIE_MANAGER", "get_cookie"]
