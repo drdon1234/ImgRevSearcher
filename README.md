@@ -40,7 +40,7 @@
 > - 无痕模式cookie格式一般为 `AEC= ; NID= ; DV=`，有效期限约6个月
 > - 登录状态cookie有效期极短，不建议使用
 
-> #### 已支持自动获取 Google Cookie 并管理更新
+> #### 已支持自动获取 Google Lens Cookie 并管理更新
 > 将配置文件中的 `cookie_manager` -> `google_lens` -> `auto_fetch` 设置为 `true`
 
 # API 参数说明文档
