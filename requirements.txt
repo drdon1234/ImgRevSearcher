@@ -1,4 +1,5 @@
 httpx
 pillow
 pyquery
+selenium
 typing_extensions
